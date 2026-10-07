@@ -290,8 +290,8 @@ $("claimVaultForm").addEventListener("submit", async event => {
 
   onboardingMessage("Claiming your Snack Vault…");
 
-  const { data, error } = await supabase.rpc(
-    "claim_creator_with_invite",
+  const { data: creatorId, error } = await supabase.rpc(
+    "claim_creator_vault",
     {
       p_code: code
     }
@@ -302,15 +302,30 @@ $("claimVaultForm").addEventListener("submit", async event => {
     return;
   }
 
-  creator = data;
-
-  if (!creator) {
+  if (!creatorId) {
     onboardingMessage(
       "Your Snack Vault could not be claimed."
     );
     return;
   }
 
+  const session = await getSession();
+
+  if (!session?.user) {
+    onboardingMessage("Please sign in again.");
+    return;
+  }
+
+  creator = await getOwnedCreator(session.user.id);
+
+  if (!creator) {
+    onboardingMessage(
+      "Vault claimed, but the dashboard could not load it. Refresh the page."
+    );
+    return;
+  }
+
+  $("inviteCode").value = "";
   onboardingMessage("");
 
   await openDashboard();
