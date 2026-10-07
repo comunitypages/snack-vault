@@ -7,102 +7,92 @@ const supabase = createClient(
   cfg.SUPABASE_ANON_KEY
 );
 
-const $ = x => document.getElementById(x);
+const $ = id => document.getElementById(id);
 
-let c = null;
-let items = [];
+let creator = null;
+let snacks = [];
 
-const esc = s =>
-  String(s ?? "").replace(
+
+// ======================================================
+// HELPERS
+// ======================================================
+
+function esc(value) {
+  return String(value ?? "").replace(
     /[&<>"']/g,
-    m =>
+    char =>
       ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
         '"': "&quot;",
         "'": "&#39;"
-      })[m]
+      })[char]
   );
+}
+
+function setLoginMessage(message) {
+  $("loginMsg").textContent = message || "";
+}
+
+function setSaveMessage(message) {
+  $("saveMsg").textContent = message || "";
+
+  if (message) {
+    setTimeout(() => {
+      $("saveMsg").textContent = "";
+    }, 1800);
+  }
+}
 
 
 // ======================================================
-// ACCOUNT / CREATOR SETUP
+// CREATOR ACCOUNT CONNECTION
 // ======================================================
 
-async function connectPrettyAccount(user) {
+async function connectCreatorAccount(user) {
 
-  // First see if this account already owns a creator.
-  const { data: ownedCreator, error: ownedError } = await supabase
+  // First check if this account already owns a Snack Vault.
+  const {
+    data: existingCreator,
+    error: existingError
+  } = await supabase
     .from("creators")
     .select("*")
     .eq("owner_id", user.id)
     .maybeSingle();
 
-  if (ownedError) throw ownedError;
+  if (existingError) {
+    throw existingError;
+  }
 
-  if (ownedCreator) {
-    return ownedCreator;
+  if (existingCreator) {
+    return existingCreator;
   }
 
 
-  // Otherwise find Pretty's existing Snack Vault.
-  const { data: pretty, error: prettyError } = await supabase
-    .from("creators")
-    .select("*")
-    .eq("slug", cfg.DEFAULT_CREATOR_SLUG)
-    .maybeSingle();
-
-  if (prettyError) throw prettyError;
-
-  if (!pretty) {
-    throw new Error("Pretty Massacure's Snack Vault could not be found.");
-  }
-
-
-  // If someone already owns it, this account must not claim it.
-  if (pretty.owner_id && pretty.owner_id !== user.id) {
-    throw new Error(
-      "This Snack Vault is already connected to another creator account."
-    );
-  }
-
-
-  // Claim the existing Pretty creator.
-  const { data: claimed, error: claimError } = await supabase
-    .from("creators")
-    .update({
-      owner_id: user.id
-    })
-    .eq("id", pretty.id)
-    .is("owner_id", null)
-    .select()
-    .maybeSingle();
-
-  if (claimError) throw claimError;
-
-
-  // If the row was not returned, check whether we already own it.
-  if (!claimed) {
-
-    const { data: check, error: checkError } = await supabase
-      .from("creators")
-      .select("*")
-      .eq("id", pretty.id)
-      .maybeSingle();
-
-    if (checkError) throw checkError;
-
-    if (check?.owner_id === user.id) {
-      return check;
+  // Otherwise securely claim Pretty's existing Snack Vault.
+  const {
+    data: claimedCreator,
+    error: claimError
+  } = await supabase.rpc(
+    "claim_creator_account",
+    {
+      p_slug: cfg.DEFAULT_CREATOR_SLUG
     }
+  );
 
+  if (claimError) {
+    throw claimError;
+  }
+
+  if (!claimedCreator) {
     throw new Error(
       "This Snack Vault could not be connected to your account."
     );
   }
 
-  return claimed;
+  return claimedCreator;
 }
 
 
@@ -113,27 +103,34 @@ async function connectPrettyAccount(user) {
 async function load() {
 
   const {
-    data: { user }
+    data: { user },
+    error
   } = await supabase.auth.getUser();
+
+  if (error) {
+    throw error;
+  }
 
 
   if (!user) {
+
     $("login").classList.remove("hidden");
     $("app").classList.add("hidden");
+
     return;
   }
 
 
   try {
 
-    c = await connectPrettyAccount(user);
+    creator = await connectCreatorAccount(user);
 
   } catch (error) {
 
     $("login").classList.remove("hidden");
     $("app").classList.add("hidden");
 
-    $("loginMsg").textContent = error.message;
+    setLoginMessage(error.message);
 
     return;
   }
@@ -142,19 +139,24 @@ async function load() {
   $("login").classList.add("hidden");
   $("app").classList.remove("hidden");
 
-  $("creatorName").textContent = c.name;
 
-  $("setName").value = c.name;
+  $("creatorName").textContent =
+    creator.name || "Snack Vault";
+
+  $("setName").value =
+    creator.name || "";
 
   $("setColor").value =
-    c.accent_color || "#ff2d95";
+    creator.accent_color || "#ff2d95";
+
 
   document.documentElement.style.setProperty(
     "--accent",
-    c.accent_color || "#ff2d95"
+    creator.accent_color || "#ff2d95"
   );
 
-  await refresh();
+
+  await refreshDashboard();
 }
 
 
@@ -162,294 +164,438 @@ async function load() {
 // SIGN IN
 // ======================================================
 
-$("loginForm").onsubmit = async e => {
+$("loginForm").addEventListener(
+  "submit",
+  async event => {
 
-  e.preventDefault();
+    event.preventDefault();
 
-  $("loginMsg").textContent = "Signing in…";
+    const email =
+      $("email").value.trim();
 
-
-  const { error } =
-    await supabase.auth.signInWithPassword({
-
-      email: $("email").value.trim(),
-
-      password: $("password").value
-
-    });
+    const password =
+      $("password").value;
 
 
-  if (error) {
+    if (!email || !password) {
+      setLoginMessage(
+        "Enter your email and password."
+      );
+      return;
+    }
 
-    $("loginMsg").textContent =
-      error.message;
 
-    return;
+    setLoginMessage("Signing in…");
+
+
+    const { error } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+
+    if (error) {
+      setLoginMessage(error.message);
+      return;
+    }
+
+
+    location.reload();
   }
-
-
-  location.reload();
-};
+);
 
 
 // ======================================================
 // CREATE ACCOUNT
 // ======================================================
 
-$("signUpButton").onclick = async () => {
+$("signUpButton").addEventListener(
+  "click",
+  async () => {
 
-  const email =
-    $("email").value.trim();
+    const email =
+      $("email").value.trim();
 
-  const password =
-    $("password").value;
+    const password =
+      $("password").value;
 
 
-  if (!email) {
+    if (!email) {
+      setLoginMessage(
+        "Enter your email first."
+      );
+      return;
+    }
 
-    $("loginMsg").textContent =
-      "Enter your email first.";
 
-    return;
+    if (!password) {
+      setLoginMessage(
+        "Enter a password."
+      );
+      return;
+    }
+
+
+    if (password.length < 6) {
+      setLoginMessage(
+        "Password must be at least 6 characters."
+      );
+      return;
+    }
+
+
+    setLoginMessage(
+      "Creating your account…"
+    );
+
+
+    const {
+      data,
+      error
+    } = await supabase.auth.signUp({
+      email,
+      password
+    });
+
+
+    if (error) {
+      setLoginMessage(error.message);
+      return;
+    }
+
+
+    // Supabase may require email verification.
+    if (!data.session) {
+
+      setLoginMessage(
+        "Account created! Check your email to confirm your account, then return here and sign in."
+      );
+
+      return;
+    }
+
+
+    if (!data.user) {
+
+      setLoginMessage(
+        "Account created, but the user session could not be loaded. Try signing in."
+      );
+
+      return;
+    }
+
+
+    setLoginMessage(
+      "Account created! Connecting your Snack Vault…"
+    );
+
+
+    try {
+
+      creator =
+        await connectCreatorAccount(
+          data.user
+        );
+
+      location.reload();
+
+    } catch (error) {
+
+      setLoginMessage(
+        error.message
+      );
+    }
   }
-
-
-  if (password.length < 6) {
-
-    $("loginMsg").textContent =
-      "Password must be at least 6 characters.";
-
-    return;
-  }
-
-
-  $("loginMsg").textContent =
-    "Creating your account…";
-
-
-  const {
-    data,
-    error
-  } = await supabase.auth.signUp({
-
-    email,
-
-    password
-
-  });
-
-
-  if (error) {
-
-    $("loginMsg").textContent =
-      error.message;
-
-    return;
-  }
-
-
-  // If Supabase requires email confirmation.
-  if (!data.session) {
-
-    $("loginMsg").textContent =
-      "Account created! Check your email to confirm it, then come back and sign in.";
-
-    return;
-  }
-
-
-  $("loginMsg").textContent =
-    "Account created! Connecting your Snack Vault…";
-
-
-  try {
-
-    await connectPrettyAccount(data.user);
-
-    location.reload();
-
-  } catch (error) {
-
-    $("loginMsg").textContent =
-      error.message;
-  }
-};
+);
 
 
 // ======================================================
 // LOG OUT
 // ======================================================
 
-$("logout").onclick = async () => {
+$("logout").addEventListener(
+  "click",
+  async () => {
 
-  await supabase.auth.signOut();
+    await supabase.auth.signOut();
 
-  location.reload();
-};
+    location.reload();
+  }
+);
 
 
 // ======================================================
-// DASHBOARD DATA
+// REFRESH DASHBOARD
 // ======================================================
 
-async function refresh() {
+async function refreshDashboard() {
 
-  let { data, error } =
-    await supabase
-      .from("snacks")
-      .select("*")
-      .eq("creator_id", c.id)
-      .order("created_at");
+  await Promise.all([
+    loadSnacks(),
+    loadStats(),
+    loadPullHistory()
+  ]);
 
-
-  if (error) throw error;
-
-
-  items = data || [];
-
-
-  $("snackCount").textContent =
-    items.filter(
-      x => x.enabled && !x.archived
-    ).length;
-
-
-  let { count: v } =
-    await supabase
-      .from("viewers")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("creator_id", c.id);
-
-
-  $("viewerCount").textContent =
-    v || 0;
-
-
-  let { count: p } =
-    await supabase
-      .from("pulls")
-      .select("id", {
-        count: "exact",
-        head: true
-      })
-      .eq("creator_id", c.id);
-
-
-  $("pullCount").textContent =
-    p || 0;
-
-
-  let { data: l } =
-    await supabase
-      .from("leaderboard")
-      .select("unique_snacks")
-      .eq("creator_id", c.id)
-      .order("unique_snacks", {
-        ascending: false
-      })
-      .limit(1);
-
-
-  $("leaderCount").textContent =
-    l?.[0]?.unique_snacks || 0;
-
-
-  render();
-
-  await pulls();
-
-  endpoint();
+  setEndpoint();
 }
 
 
 // ======================================================
-// SNACK TABLE
+// LOAD SNACKS
 // ======================================================
 
-function render() {
+async function loadSnacks() {
 
-  let active =
-    items.filter(
-      x => x.enabled && !x.archived
+  const {
+    data,
+    error
+  } = await supabase
+    .from("snacks")
+    .select("*")
+    .eq("creator_id", creator.id)
+    .order("created_at");
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  snacks = data || [];
+
+  $("snackCount").textContent =
+    snacks.filter(
+      snack =>
+        snack.enabled &&
+        !snack.archived
+    ).length;
+
+
+  renderSnacks();
+}
+
+
+// ======================================================
+// LOAD STATS
+// ======================================================
+
+async function loadStats() {
+
+  const viewerResult =
+    await supabase
+      .from("viewers")
+      .select(
+        "id",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "creator_id",
+        creator.id
+      );
+
+
+  $("viewerCount").textContent =
+    viewerResult.count || 0;
+
+
+  const pullResult =
+    await supabase
+      .from("pulls")
+      .select(
+        "id",
+        {
+          count: "exact",
+          head: true
+        }
+      )
+      .eq(
+        "creator_id",
+        creator.id
+      );
+
+
+  $("pullCount").textContent =
+    pullResult.count || 0;
+
+
+  const {
+    data: leaderboardData
+  } = await supabase
+    .from("leaderboard")
+    .select("unique_snacks")
+    .eq(
+      "creator_id",
+      creator.id
+    )
+    .order(
+      "unique_snacks",
+      {
+        ascending: false
+      }
+    )
+    .limit(1);
+
+
+  $("leaderCount").textContent =
+    leaderboardData?.[0]
+      ?.unique_snacks || 0;
+}
+
+
+// ======================================================
+// RENDER SNACKS
+// ======================================================
+
+function renderSnacks() {
+
+  const activeSnacks =
+    snacks.filter(
+      snack =>
+        snack.enabled &&
+        !snack.archived
     );
 
 
-  let tw =
-    active.reduce(
-      (a, x) => a + x.weight,
+  const totalWeight =
+    activeSnacks.reduce(
+      (total, snack) =>
+        total +
+        Number(snack.weight || 0),
       0
     );
 
 
+  const visibleSnacks =
+    snacks.filter(
+      snack =>
+        !snack.archived
+    );
+
+
+  if (!visibleSnacks.length) {
+
+    $("snackRows").innerHTML = `
+      <tr>
+        <td colspan="6">
+          No snacks yet.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+
   $("snackRows").innerHTML =
-    items
-      .filter(x => !x.archived)
-      .map(
-        x => `
+    visibleSnacks
+      .map(snack => {
 
-<tr>
+        const weight =
+          Number(
+            snack.weight || 0
+          );
 
-<td>
 
-${x.image_url
-  ? `<img class="thumb" src="${esc(x.image_url)}">`
-  : ""}
+        const chance =
+          snack.enabled &&
+          totalWeight > 0
 
-${esc(x.name)}
+            ? (
+                (weight /
+                  totalWeight) *
+                100
+              ).toFixed(1) + "%"
 
-</td>
+            : "—";
 
-<td>${esc(x.rarity)}</td>
 
-<td>${x.weight}</td>
+        return `
+          <tr>
 
-<td>
+            <td>
 
-${
-  x.enabled && tw
-    ? ((x.weight / tw) * 100).toFixed(1) + "%"
-    : "—"
-}
+              ${
+                snack.image_url
+                  ? `
+                    <img
+                      class="thumb"
+                      src="${esc(
+                        snack.image_url
+                      )}"
+                      alt=""
+                    >
+                  `
+                  : ""
+              }
 
-</td>
+              ${esc(snack.name)}
 
-<td>
-${x.enabled ? "Enabled" : "Disabled"}
-</td>
+            </td>
 
-<td>
+            <td>
+              ${esc(snack.rarity)}
+            </td>
 
-<button
-class="edit"
-data-edit="${x.id}">
-Edit
-</button>
+            <td>
+              ${weight}
+            </td>
 
-</td>
+            <td>
+              ${chance}
+            </td>
 
-</tr>
+            <td>
+              ${
+                snack.enabled
+                  ? "Enabled"
+                  : "Disabled"
+              }
+            </td>
 
-`
-      )
+            <td>
+
+              <button
+                class="edit"
+                data-edit="${snack.id}"
+              >
+                Edit
+              </button>
+
+            </td>
+
+          </tr>
+        `;
+      })
       .join("");
 
 
   document
-    .querySelectorAll("[data-edit]")
-    .forEach(
-      b =>
-        (b.onclick = () =>
-          open(
-            items.find(
-              x =>
-                x.id ===
-                b.dataset.edit
-            )
-          ))
-    );
+    .querySelectorAll(
+      "[data-edit]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const snack =
+            snacks.find(
+              item =>
+                item.id ===
+                button.dataset.edit
+            );
+
+          if (snack) {
+            openSnackModal(snack);
+          }
+        }
+      );
+    });
 }
 
 
@@ -457,58 +603,84 @@ Edit
 // PULL HISTORY
 // ======================================================
 
-async function pulls() {
+async function loadPullHistory() {
 
-  let { data, error } =
-    await supabase
-      .from("pulls")
-      .select(
-        "created_at,viewers(display_name),snacks(name)"
-      )
-      .eq("creator_id", c.id)
-      .order("created_at", {
+  const {
+    data,
+    error
+  } = await supabase
+    .from("pulls")
+    .select(
+      "created_at,viewers(display_name),snacks(name)"
+    )
+    .eq(
+      "creator_id",
+      creator.id
+    )
+    .order(
+      "created_at",
+      {
         ascending: false
-      })
-      .limit(50);
+      }
+    )
+    .limit(50);
 
 
   if (error) {
 
-    $("pullRows").innerHTML =
-      '<tr><td colspan="3">No history yet.</td></tr>';
+    $("pullRows").innerHTML = `
+      <tr>
+        <td colspan="3">
+          No history yet.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+
+  if (!data?.length) {
+
+    $("pullRows").innerHTML = `
+      <tr>
+        <td colspan="3">
+          No pulls yet.
+        </td>
+      </tr>
+    `;
 
     return;
   }
 
 
   $("pullRows").innerHTML =
-    (data || [])
-      .map(
-        x => `
+    data
+      .map(pull => `
+        <tr>
 
-<tr>
+          <td>
+            ${esc(
+              pull.viewers
+                ?.display_name
+            )}
+          </td>
 
-<td>
-${esc(x.viewers?.display_name)}
-</td>
+          <td>
+            ${esc(
+              pull.snacks?.name
+            )}
+          </td>
 
-<td>
-${esc(x.snacks?.name)}
-</td>
+          <td>
+            ${new Date(
+              pull.created_at
+            ).toLocaleString()}
+          </td>
 
-<td>
-${new Date(
-  x.created_at
-).toLocaleString()}
-</td>
-
-</tr>
-
-`
-      )
-      .join("") ||
-
-    '<tr><td colspan="3">No pulls yet.</td></tr>';
+        </tr>
+      `)
+      .join("");
 }
 
 
@@ -516,7 +688,7 @@ ${new Date(
 // BOT ENDPOINT
 // ======================================================
 
-function endpoint() {
+function setEndpoint() {
 
   $("endpoint").value =
     cfg.SUPABASE_URL.replace(
@@ -531,322 +703,502 @@ function endpoint() {
 // SNACK MODAL
 // ======================================================
 
-function open(x = null) {
+function openSnackModal(
+  snack = null
+) {
 
   $("modal").classList.remove(
     "hidden"
   );
 
+
   $("snackId").value =
-    x?.id || "";
+    snack?.id || "";
+
 
   $("modalTitle").textContent =
-    x ? "Edit Snack" : "Add Snack";
+    snack
+      ? "Edit Snack"
+      : "Add Snack";
+
 
   $("sName").value =
-    x?.name || "";
+    snack?.name || "";
+
 
   $("sDesc").value =
-    x?.description || "";
+    snack?.description || "";
+
 
   $("sRarity").value =
-    x?.rarity || "Common";
+    snack?.rarity || "Common";
+
 
   $("sCategory").value =
-    x?.category || "Snack";
+    snack?.category || "Snack";
+
 
   $("sWeight").value =
-    x?.weight ?? 50;
+    snack?.weight ?? 50;
+
 
   $("sEnabled").checked =
-    x?.enabled ?? true;
+    snack?.enabled ?? true;
 
-  $("archiveSnack").classList.toggle(
-    "hidden",
-    !x
-  );
+
+  $("sImage").value = "";
+
+
+  $("archiveSnack")
+    .classList
+    .toggle(
+      "hidden",
+      !snack
+    );
 }
 
 
-function close() {
+function closeSnackModal() {
 
   $("modal").classList.add(
     "hidden"
   );
 
   $("snackForm").reset();
+
+  $("snackId").value = "";
 }
 
 
-$("addSnack").onclick =
-  () => open();
+$("addSnack").addEventListener(
+  "click",
+  () => openSnackModal()
+);
 
 
-$("closeModal").onclick =
-$("cancelSnack").onclick =
-  close;
+$("closeModal").addEventListener(
+  "click",
+  closeSnackModal
+);
+
+
+$("cancelSnack").addEventListener(
+  "click",
+  closeSnackModal
+);
 
 
 // ======================================================
 // SAVE SNACK
 // ======================================================
 
-$("snackForm").onsubmit =
-async e => {
+$("snackForm").addEventListener(
+  "submit",
+  async event => {
 
-  e.preventDefault();
-
-
-  let id =
-    $("snackId").value;
+    event.preventDefault();
 
 
-  let img = null;
+    const snackId =
+      $("snackId").value;
 
 
-  let file =
-    $("sImage").files[0];
-
-
-  if (file) {
-
-    let path =
-      `${c.id}/${crypto.randomUUID()}-${file.name.replace(
-        /[^a-z0-9._-]/gi,
-        "_"
-      )}`;
-
-
-    let { error } =
-      await supabase.storage
-        .from("snack-images")
-        .upload(path, file);
-
-
-    if (error)
-      return alert(
-        error.message
+    const existingSnack =
+      snacks.find(
+        snack =>
+          snack.id === snackId
       );
 
 
-    img =
-      supabase.storage
+    let imageUrl =
+      existingSnack?.image_url ||
+      null;
+
+
+    const file =
+      $("sImage").files[0];
+
+
+    // Upload a new image if selected.
+    if (file) {
+
+      const safeFileName =
+        file.name.replace(
+          /[^a-z0-9._-]/gi,
+          "_"
+        );
+
+
+      const path =
+        `${creator.id}/${crypto.randomUUID()}-${safeFileName}`;
+
+
+      const {
+        error: uploadError
+      } = await supabase.storage
         .from("snack-images")
-        .getPublicUrl(path)
-        .data.publicUrl;
-  }
+        .upload(
+          path,
+          file
+        );
 
 
-  let row = {
+      if (uploadError) {
 
-    creator_id: c.id,
+        alert(
+          uploadError.message
+        );
 
-    name:
-      $("sName").value.trim(),
-
-    description:
-      $("sDesc").value.trim(),
-
-    rarity:
-      $("sRarity").value,
-
-    category:
-      $("sCategory").value.trim(),
-
-    weight:
-      Number(
-        $("sWeight").value
-      ),
-
-    enabled:
-      $("sEnabled").checked
-  };
+        return;
+      }
 
 
-  if (img)
-    row.image_url = img;
+      imageUrl =
+        supabase.storage
+          .from("snack-images")
+          .getPublicUrl(path)
+          .data
+          .publicUrl;
+    }
 
 
-  let q =
-    id
+    const row = {
 
-      ? supabase
+      creator_id:
+        creator.id,
+
+      name:
+        $("sName")
+          .value
+          .trim(),
+
+      description:
+        $("sDesc")
+          .value
+          .trim(),
+
+      rarity:
+        $("sRarity").value,
+
+      category:
+        $("sCategory")
+          .value
+          .trim(),
+
+      weight:
+        Number(
+          $("sWeight").value
+        ),
+
+      enabled:
+        $("sEnabled").checked
+    };
+
+
+    if (imageUrl) {
+      row.image_url =
+        imageUrl;
+    }
+
+
+    let result;
+
+
+    if (snackId) {
+
+      result =
+        await supabase
           .from("snacks")
           .update(row)
-          .eq("id", id)
+          .eq(
+            "id",
+            snackId
+          )
+          .eq(
+            "creator_id",
+            creator.id
+          );
 
-      : supabase
+    } else {
+
+      result =
+        await supabase
           .from("snacks")
           .insert(row);
+    }
 
 
-  let { error } = await q;
+    if (result.error) {
+
+      alert(
+        result.error.message
+      );
+
+      return;
+    }
 
 
-  if (error)
-    return alert(
-      error.message
-    );
+    closeSnackModal();
 
-
-  close();
-
-  await refresh();
-};
+    await refreshDashboard();
+  }
+);
 
 
 // ======================================================
-// ARCHIVE
+// ARCHIVE SNACK
 // ======================================================
 
-$("archiveSnack").onclick =
-async () => {
+$("archiveSnack").addEventListener(
+  "click",
+  async () => {
 
-  let id =
-    $("snackId").value;
-
-
-  if (
-    !id ||
-    !confirm(
-      "Archive this snack? Existing viewer copies and pull history stay intact."
-    )
-  )
-    return;
+    const snackId =
+      $("snackId").value;
 
 
-  let { error } =
-    await supabase
+    if (!snackId) {
+      return;
+    }
+
+
+    const confirmed =
+      confirm(
+        "Archive this snack? Existing viewer copies and pull history stay intact."
+      );
+
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    const {
+      error
+    } = await supabase
       .from("snacks")
       .update({
         archived: true,
         enabled: false
       })
-      .eq("id", id);
+      .eq(
+        "id",
+        snackId
+      )
+      .eq(
+        "creator_id",
+        creator.id
+      );
 
 
-  if (error)
-    return alert(
-      error.message
-    );
+    if (error) {
+
+      alert(
+        error.message
+      );
+
+      return;
+    }
 
 
-  close();
+    closeSnackModal();
 
-  await refresh();
-};
+    await refreshDashboard();
+  }
+);
 
 
 // ======================================================
-// BOT API KEY
+// GENERATE BOT API KEY
 // ======================================================
 
-$("generateKey").onclick =
-async () => {
+$("generateKey").addEventListener(
+  "click",
+  async () => {
 
-  if (
-    !confirm(
-      "Generate a new bot key? Any old active key will stop working."
-    )
-  )
-    return;
+    if (!creator) {
+      return;
+    }
 
 
-  let { data, error } =
-    await supabase.rpc(
+    const confirmed =
+      confirm(
+        "Generate a new bot key? Any old active key will stop working."
+      );
+
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    const {
+      data,
+      error
+    } = await supabase.rpc(
       "generate_api_key",
       {
-        p_creator_id: c.id
+        p_creator_id:
+          creator.id
       }
     );
 
 
-  if (error)
-    return alert(
-      error.message
-    );
+    if (error) {
+
+      alert(
+        error.message
+      );
+
+      return;
+    }
 
 
-  $("apiKey").value =
-    data;
+    $("apiKey").value =
+      data;
 
 
-  $("keyWarning")
-    .classList
-    .remove("hidden");
-};
+    $("keyWarning")
+      .classList
+      .remove("hidden");
+  }
+);
 
 
-document.querySelector(
-  '[data-copy="endpoint"]'
-).onclick =
-  () =>
-    navigator.clipboard.writeText(
-      $("endpoint").value
-    );
+// ======================================================
+// COPY ENDPOINT
+// ======================================================
+
+document
+  .querySelector(
+    '[data-copy="endpoint"]'
+  )
+  .addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        await navigator.clipboard
+          .writeText(
+            $("endpoint").value
+          );
+
+        setSaveMessage(
+          "Endpoint copied"
+        );
+
+      } catch {
+
+        alert(
+          "Could not copy automatically. Select the endpoint and copy it manually."
+        );
+      }
+    }
+  );
 
 
 // ======================================================
 // SETTINGS
 // ======================================================
 
-$("saveSettings").onclick =
-async () => {
+$("saveSettings").addEventListener(
+  "click",
+  async () => {
 
-  let row = {
-
-    name:
+    const name =
       $("setName")
         .value
-        .trim(),
-
-    accent_color:
-      $("setColor").value
-  };
+        .trim();
 
 
-  let { error } =
-    await supabase
+    const accentColor =
+      $("setColor").value;
+
+
+    if (!name) {
+
+      alert(
+        "Creator name cannot be empty."
+      );
+
+      return;
+    }
+
+
+    const {
+      data,
+      error
+    } = await supabase
       .from("creators")
-      .update(row)
-      .eq("id", c.id);
+      .update({
+        name,
+        accent_color:
+          accentColor
+      })
+      .eq(
+        "id",
+        creator.id
+      )
+      .select()
+      .single();
 
 
-  if (error)
-    return alert(
-      error.message
-    );
+    if (error) {
+
+      alert(
+        error.message
+      );
+
+      return;
+    }
 
 
-  $("saveMsg").textContent =
-    "Saved";
+    creator = data;
 
 
-  c = {
-    ...c,
-    ...row
-  };
+    $("creatorName").textContent =
+      creator.name;
 
 
-  $("creatorName").textContent =
-    c.name;
+    document.documentElement
+      .style
+      .setProperty(
+        "--accent",
+        creator.accent_color ||
+          "#ff2d95"
+      );
 
 
-  document.documentElement
-    .style
-    .setProperty(
-      "--accent",
-      row.accent_color
-    );
+    setSaveMessage("Saved");
+  }
+);
 
 
-  setTimeout(
-    () =>
-      ($("saveMsg").textContent =
-        ""),
-    1500
-  );
-};
+// ======================================================
+// AUTH STATE CHANGES
+// ======================================================
+
+supabase.auth.onAuthStateChange(
+  (event, session) => {
+
+    if (
+      event === "SIGNED_OUT"
+    ) {
+
+      creator = null;
+      snacks = [];
+
+      $("app").classList.add(
+        "hidden"
+      );
+
+      $("login").classList.remove(
+        "hidden"
+      );
+    }
+  }
+);
 
 
 // ======================================================
@@ -855,8 +1207,18 @@ async () => {
 
 load().catch(error => {
 
-  $("loginMsg").textContent =
-    error.message;
-
   console.error(error);
+
+  $("login").classList.remove(
+    "hidden"
+  );
+
+  $("app").classList.add(
+    "hidden"
+  );
+
+  setLoginMessage(
+    error.message ||
+      "Something went wrong loading the dashboard."
+  );
 });
