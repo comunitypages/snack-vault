@@ -54,3 +54,8 @@ export async function getLeaderboard(id) {
   if (error) throw error;
   return data || [];
 }
+// Backwards-compatible names used by the current website
+export const creator = getCreator;
+export const snacks = getSnacks;
+export const collection = getCollection;
+export const leaderboard = getLeaderboard;
