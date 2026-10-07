@@ -2,16 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>After Hours Community</title>
   <meta
     name="description"
-    content="After Hours Community — interactive community experiences, games, collections, and creator tools built for stream."
+    content="After Hours Community — interactive creator experiences, collections and community tools."
   >
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
     rel="stylesheet"
@@ -19,16 +20,29 @@
 
   <style>
     :root {
-      --bg: #07070a;
-      --panel: #0e0e14;
-      --panel2: #13131b;
-      --border: rgba(255,255,255,.09);
+      --bg: #050509;
+      --bg-soft: #090a12;
+      --panel: rgba(14, 15, 25, .78);
+      --panel-hover: rgba(20, 20, 34, .92);
+
       --text: #f7f7fb;
-      --muted: #9898aa;
-      --purple: #a855f7;
-      --pink: #f52ba3;
-      --cyan: #45d7ff;
-      --max: 1220px;
+      --muted: #9b9baa;
+
+      --blue: #15bfff;
+      --violet: #7857ff;
+      --purple: #a938ff;
+      --pink: #ff2da6;
+
+      --border: rgba(255,255,255,.09);
+
+      --gradient:
+        linear-gradient(
+          120deg,
+          var(--blue),
+          var(--violet),
+          var(--purple),
+          var(--pink)
+        );
     }
 
     * {
@@ -41,13 +55,56 @@
 
     body {
       margin: 0;
+      min-height: 100vh;
       background:
-        radial-gradient(circle at 15% 5%, rgba(168,85,247,.13), transparent 28rem),
-        radial-gradient(circle at 85% 35%, rgba(69,215,255,.07), transparent 30rem),
+        radial-gradient(
+          circle at 15% 10%,
+          rgba(0,174,255,.12),
+          transparent 28%
+        ),
+        radial-gradient(
+          circle at 85% 25%,
+          rgba(150,47,255,.12),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 50% 90%,
+          rgba(255,36,155,.07),
+          transparent 35%
+        ),
         var(--bg);
+
       color: var(--text);
       font-family: "DM Sans", sans-serif;
-      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .12;
+
+      background-image:
+        linear-gradient(
+          rgba(255,255,255,.025) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255,255,255,.025) 1px,
+          transparent 1px
+        );
+
+      background-size: 60px 60px;
+
+      mask-image:
+        linear-gradient(
+          to bottom,
+          black,
+          transparent 80%
+        );
     }
 
     a {
@@ -60,143 +117,196 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    header {
-      height: 78px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(7,7,10,.78);
-      backdrop-filter: blur(18px);
-      position: sticky;
-      top: 0;
-      z-index: 20;
-    }
+    /* HEADER */
 
-    .nav {
-      max-width: var(--max);
-      height: 100%;
-      margin: auto;
-      padding: 0 24px;
+    header {
+      width: 100%;
+      height: 86px;
+
       display: flex;
       align-items: center;
       justify-content: space-between;
+
+      padding: 0 6%;
+
+      position: relative;
+      z-index: 10;
+
+      border-bottom: 1px solid var(--border);
+
+      background:
+        rgba(5,5,9,.75);
+
+      backdrop-filter: blur(20px);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-weight: 800;
-      letter-spacing: .04em;
+      gap: 14px;
     }
 
-    .logo {
-      width: 38px;
-      height: 38px;
-      border-radius: 11px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg,var(--pink),var(--purple));
-      box-shadow: 0 0 30px rgba(168,85,247,.25);
-      font-family: "Space Grotesk",sans-serif;
-      font-size: 13px;
+    .brand img {
+      width: 48px;
+      height: 48px;
+
+      border-radius: 12px;
+      object-fit: cover;
+
+      box-shadow:
+        0 0 24px rgba(112,73,255,.22);
     }
 
-    .brand span span {
-      color: var(--purple);
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+    }
+
+    .brand-text strong {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 15px;
+      letter-spacing: .12em;
+    }
+
+    .brand-text small {
+      margin-top: 6px;
+
+      color: var(--muted);
+
+      font-size: 10px;
+      letter-spacing: .18em;
     }
 
     nav {
       display: flex;
       align-items: center;
-      gap: 28px;
-      font-size: 14px;
+      gap: 34px;
+    }
+
+    nav a {
       color: var(--muted);
+
+      font-size: 14px;
+      font-weight: 600;
+
+      transition: .2s ease;
     }
 
     nav a:hover {
       color: white;
     }
 
-    .login {
-      color: white;
-      padding: 10px 17px;
-      border: 1px solid rgba(168,85,247,.5);
+    .dashboard-button {
+      padding: 11px 18px;
+
+      color: white !important;
+
+      border: 1px solid rgba(126,86,255,.35);
       border-radius: 10px;
-      transition: .2s ease;
+
+      background:
+        rgba(126,86,255,.08);
     }
 
-    .login:hover {
-      background: rgba(168,85,247,.1);
-      border-color: var(--purple);
+    .dashboard-button:hover {
+      border-color: rgba(255,45,166,.55);
+
+      box-shadow:
+        0 0 24px rgba(126,86,255,.12);
     }
 
-    main {
-      overflow: hidden;
-    }
+    /* HERO */
 
     .hero {
-      max-width: var(--max);
-      min-height: 660px;
+      min-height: 650px;
+
+      max-width: 1250px;
       margin: auto;
-      padding: 100px 24px 70px;
+
+      padding: 110px 40px 80px;
+
       display: grid;
-      grid-template-columns: 1.08fr .92fr;
-      gap: 70px;
+      grid-template-columns: 1.1fr .9fr;
       align-items: center;
+      gap: 70px;
     }
 
     .eyebrow {
-      color: var(--pink);
+      margin: 0 0 20px;
+
       font-size: 12px;
       font-weight: 800;
-      letter-spacing: .19em;
-      margin: 0 0 22px;
-    }
+      letter-spacing: .24em;
 
-    h1,
-    h2,
-    h3 {
-      font-family: "Space Grotesk",sans-serif;
+      background: var(--gradient);
+
+      -webkit-background-clip: text;
+      background-clip: text;
+
+      color: transparent;
     }
 
     h1 {
-      font-size: clamp(52px,6vw,86px);
-      line-height: .98;
-      letter-spacing: -.055em;
       margin: 0;
-      max-width: 800px;
+
+      max-width: 760px;
+
+      font-family: "Space Grotesk", sans-serif;
+
+      font-size:
+        clamp(52px, 6.4vw, 88px);
+
+      line-height: .96;
+      letter-spacing: -.055em;
     }
 
-    h1 em {
-      font-style: normal;
-      background: linear-gradient(90deg,var(--pink),var(--purple));
+    h1 span {
+      background: var(--gradient);
+
       -webkit-background-clip: text;
+      background-clip: text;
+
       color: transparent;
     }
 
     .hero-copy {
-      margin: 28px 0 34px;
-      max-width: 620px;
+      max-width: 650px;
+
+      margin-top: 28px;
+
       color: var(--muted);
-      line-height: 1.75;
-      font-size: 17px;
+
+      font-size: 18px;
+      line-height: 1.7;
     }
 
-    .actions {
+    .hero-buttons {
+      margin-top: 38px;
+
       display: flex;
-      gap: 12px;
+      gap: 14px;
       flex-wrap: wrap;
     }
 
     .button {
+      min-height: 52px;
+
+      padding: 0 24px;
+
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 48px;
-      padding: 0 22px;
-      border-radius: 11px;
+
+      border-radius: 12px;
+
       font-size: 14px;
       font-weight: 800;
-      transition: transform .2s ease, border-color .2s ease;
+
+      transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease;
     }
 
     .button:hover {
@@ -204,326 +314,600 @@
     }
 
     .primary {
-      background: linear-gradient(100deg,var(--pink),var(--purple));
-      color: white;
-      box-shadow: 0 12px 35px rgba(168,85,247,.18);
+      background: var(--gradient);
+
+      box-shadow:
+        0 0 35px rgba(118,76,255,.2);
+    }
+
+    .primary:hover {
+      box-shadow:
+        0 0 42px rgba(118,76,255,.34);
     }
 
     .secondary {
       border: 1px solid var(--border);
-      background: rgba(255,255,255,.025);
+
+      background:
+        rgba(255,255,255,.025);
     }
 
     .secondary:hover {
-      border-color: rgba(168,85,247,.5);
+      border-color:
+        rgba(126,86,255,.45);
     }
 
+    /* HERO ART */
+
     .hero-art {
+      min-height: 450px;
+
       position: relative;
-      min-height: 470px;
-      display: grid;
-      place-items: center;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .orb {
+      position: absolute;
+
       width: 390px;
       height: 390px;
+
       border-radius: 50%;
-      border: 1px solid rgba(168,85,247,.18);
-      position: absolute;
+
+      border:
+        1px solid rgba(109,70,255,.17);
+
       box-shadow:
-        0 0 100px rgba(168,85,247,.08),
-        inset 0 0 100px rgba(168,85,247,.04);
+        inset 0 0 80px rgba(112,58,255,.025);
     }
 
-    .orb:before {
+    .orb::before {
       content: "";
+
       position: absolute;
-      inset: 52px;
+
+      inset: 45px;
+
       border-radius: 50%;
-      border: 1px solid rgba(245,43,163,.17);
+
+      border:
+        1px solid rgba(255,45,166,.15);
     }
 
-    .community-card {
-      width: 280px;
-      height: 350px;
-      padding: 28px;
+    .orb::after {
+      content: "";
+
+      position: absolute;
+
+      width: 140px;
+      height: 140px;
+
+      top: 50%;
+      left: 50%;
+
+      transform:
+        translate(-50%,-50%);
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(93,66,255,.26),
+          rgba(255,42,165,.08),
+          transparent 68%
+        );
+
+      filter: blur(6px);
+    }
+
+    .logo-card {
+      width: 260px;
+      height: 320px;
+
       position: relative;
       z-index: 2;
-      border-radius: 26px;
-      background:
-        linear-gradient(145deg,rgba(168,85,247,.15),transparent 45%),
-        #111119;
-      border: 1px solid rgba(255,255,255,.1);
-      box-shadow: 0 30px 80px rgba(0,0,0,.5);
-      transform: rotate(4deg);
+
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      align-items: center;
+      justify-content: center;
+
+      border:
+        1px solid rgba(255,255,255,.11);
+
+      border-radius: 26px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(20,22,38,.94),
+          rgba(11,9,22,.94)
+        );
+
+      box-shadow:
+        0 40px 100px rgba(0,0,0,.5),
+        0 0 60px rgba(96,64,255,.08);
+
+      transform:
+        rotate(4deg);
     }
 
-    .community-card small {
+    .logo-card::before {
+      content: "";
+
+      position: absolute;
+      inset: -1px;
+
+      z-index: -1;
+
+      border-radius: 26px;
+
+      background:
+        var(--gradient);
+
+      opacity: .14;
+
+      filter: blur(18px);
+    }
+
+    .logo-card img {
+      width: 150px;
+      height: 150px;
+
+      border-radius: 30px;
+
+      object-fit: cover;
+
+      box-shadow:
+        0 0 45px rgba(91,63,255,.25);
+    }
+
+    .logo-card strong {
+      margin-top: 26px;
+
+      font-family:
+        "Space Grotesk",
+        sans-serif;
+
+      font-size: 18px;
+
+      letter-spacing: .1em;
+    }
+
+    .logo-card small {
+      margin-top: 7px;
+
       color: var(--muted);
-      letter-spacing: .18em;
+
+      letter-spacing: .17em;
+
+      font-size: 9px;
+    }
+
+    /* CONTENT */
+
+    .section {
+      max-width: 1250px;
+
+      margin: auto;
+
+      padding:
+        80px 40px;
+    }
+
+    .section-title {
+      margin-bottom: 35px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+
+      font-family:
+        "Space Grotesk",
+        sans-serif;
+
+      font-size:
+        clamp(34px,4vw,50px);
+
+      letter-spacing:
+        -.04em;
+    }
+
+    .section-title p:not(.eyebrow) {
+      max-width: 630px;
+
+      margin-top: 14px;
+
+      color: var(--muted);
+
+      line-height: 1.65;
+    }
+
+    /* COMMUNITY CARDS */
+
+    .community-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3,1fr);
+
+      gap: 20px;
+    }
+
+    .community {
+      min-height: 330px;
+
+      padding: 28px;
+
+      position: relative;
+
+      overflow: hidden;
+
+      display: flex;
+      flex-direction: column;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 20px;
+
+      background:
+        var(--panel);
+
+      transition:
+        transform .25s ease,
+        border-color .25s ease,
+        background .25s ease;
+    }
+
+    .community:hover {
+      transform:
+        translateY(-5px);
+
+      border-color:
+        rgba(126,86,255,.38);
+
+      background:
+        var(--panel-hover);
+    }
+
+    .community::after {
+      content: "";
+
+      position: absolute;
+
+      width: 180px;
+      height: 180px;
+
+      right: -70px;
+      top: -70px;
+
+      border-radius: 50%;
+
+      background:
+        rgba(109,67,255,.13);
+
+      filter:
+        blur(20px);
+    }
+
+    .pretty::after {
+      background:
+        rgba(255,45,149,.16);
+    }
+
+    .community-icon {
+      width: 56px;
+      height: 56px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 15px;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--blue),
+          var(--violet),
+          var(--pink)
+        );
+
+      font-family:
+        "Space Grotesk",
+        sans-serif;
+
+      font-size: 15px;
       font-weight: 800;
     }
 
-    .spark {
-      font-size: 70px;
-      text-align: center;
-      background: linear-gradient(var(--pink),var(--purple));
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-
-    .community-card strong {
-      font-family: "Space Grotesk",sans-serif;
-      font-size: 30px;
-      line-height: 1;
-    }
-
-    .section {
-      max-width: var(--max);
-      margin: auto;
-      padding: 90px 24px;
-    }
-
-    .section-heading {
-      max-width: 700px;
-      margin-bottom: 42px;
-    }
-
-    .section h2 {
-      font-size: clamp(34px,4vw,52px);
-      letter-spacing: -.04em;
-      margin: 0 0 15px;
-    }
-
-    .section-heading > p:last-child {
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
-    .experiences {
-      display: grid;
-      grid-template-columns: 1.25fr .75fr;
-      gap: 18px;
-    }
-
-    .experience {
-      min-height: 330px;
-      padding: 36px;
-      border: 1px solid var(--border);
-      border-radius: 20px;
+    .pretty .community-icon {
       background:
-        radial-gradient(circle at 100% 0%,rgba(245,43,163,.10),transparent 22rem),
-        var(--panel);
-      position: relative;
-      overflow: hidden;
+        linear-gradient(
+          135deg,
+          #ff2d95,
+          #c82aff,
+          #7439ff
+        );
     }
 
-    .experience h3 {
-      font-size: 34px;
-      margin: 20px 0 12px;
+    .community h3 {
+      margin:
+        26px 0 8px;
+
+      font-family:
+        "Space Grotesk",
+        sans-serif;
+
+      font-size: 25px;
     }
 
-    .experience p {
+    .community p {
+      margin: 0;
+
       color: var(--muted);
-      line-height: 1.7;
-      max-width: 560px;
+
+      line-height: 1.6;
     }
 
     .tag {
-      display: inline-flex;
-      padding: 7px 10px;
-      border: 1px solid rgba(245,43,163,.3);
-      border-radius: 100px;
-      color: var(--pink);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .12em;
-    }
+      width: fit-content;
 
-    .coming {
-      background:
-        radial-gradient(circle at 100% 0%,rgba(69,215,255,.08),transparent 22rem),
-        var(--panel);
-    }
-
-    .coming .tag {
-      color: var(--cyan);
-      border-color: rgba(69,215,255,.25);
-    }
-
-    .experience .button {
       margin-top: 18px;
-    }
 
-    .communities {
-      display: grid;
-      grid-template-columns: repeat(2,1fr);
-      gap: 18px;
-    }
+      padding:
+        7px 10px;
 
-    .creator {
-      padding: 28px;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: var(--panel);
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      transition: .2s ease;
-    }
+      border:
+        1px solid rgba(255,255,255,.08);
 
-    .creator:hover {
-      transform: translateY(-3px);
-      border-color: rgba(168,85,247,.35);
-    }
+      border-radius: 999px;
 
-    .creator-logo {
-      width: 60px;
-      height: 60px;
-      flex: 0 0 60px;
-      border-radius: 16px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg,var(--pink),var(--purple));
+      color: #bcbccc;
+
+      font-size: 10px;
       font-weight: 800;
+      letter-spacing: .1em;
     }
 
-    .creator h3 {
-      margin: 0 0 5px;
-      font-size: 20px;
-    }
+    .enter {
+      margin-top: auto;
+      padding-top: 25px;
 
-    .creator p {
-      color: var(--muted);
-      margin: 0;
-      font-size: 13px;
-    }
-
-    .arrow {
-      margin-left: auto;
-      font-size: 22px;
-      color: var(--muted);
-    }
-
-    .creator.you .creator-logo {
-      background: linear-gradient(135deg,var(--purple),var(--cyan));
-    }
-
-    .creator.you {
-      opacity: .75;
-    }
-
-    .creator-section-note {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 16px;
-    }
-
-    .creator-cta {
-      margin: 70px auto 100px;
-      max-width: calc(var(--max) - 48px);
-      border: 1px solid rgba(168,85,247,.2);
-      border-radius: 24px;
-      padding: 70px 30px;
-      text-align: center;
-      background:
-        radial-gradient(circle at 50% 120%,rgba(168,85,247,.18),transparent 30rem),
-        var(--panel);
-    }
-
-    .creator-cta h2 {
-      font-size: clamp(36px,5vw,58px);
-      margin: 0 0 16px;
-      letter-spacing: -.045em;
-    }
-
-    .creator-cta p {
-      max-width: 620px;
-      margin: 0 auto 28px;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
-    footer {
-      border-top: 1px solid var(--border);
-    }
-
-    .footer {
-      max-width: var(--max);
-      min-height: 110px;
-      margin: auto;
-      padding: 30px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      color: var(--muted);
+
       font-size: 13px;
+      font-weight: 800;
     }
 
-    .footer b {
+    .enter span:last-child {
+      font-size: 19px;
+
+      transition:
+        transform .2s ease;
+    }
+
+    .community:hover
+    .enter span:last-child {
+      transform:
+        translateX(5px);
+    }
+
+    /* INFO CARDS */
+
+    .feature-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3,1fr);
+
+      gap: 18px;
+    }
+
+    .feature {
+      padding: 28px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 18px;
+
+      background:
+        rgba(255,255,255,.018);
+    }
+
+    .feature .number {
+      font-family:
+        "Space Grotesk",
+        sans-serif;
+
+      font-size: 12px;
+      font-weight: 800;
+
+      background:
+        var(--gradient);
+
+      -webkit-background-clip:
+        text;
+
+      background-clip:
+        text;
+
+      color:
+        transparent;
+    }
+
+    .feature h3 {
+      margin:
+        16px 0 8px;
+
+      font-size: 18px;
+    }
+
+    .feature p {
+      margin: 0;
+
+      color: var(--muted);
+
+      line-height: 1.6;
+
+      font-size: 14px;
+    }
+
+    /* FOOTER */
+
+    footer {
+      max-width: 1250px;
+
+      margin:
+        70px auto 0;
+
+      padding:
+        35px 40px 45px;
+
+      border-top:
+        1px solid var(--border);
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      color: var(--muted);
+
+      font-size: 12px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .footer-brand img {
+      width: 34px;
+      height: 34px;
+
+      object-fit: cover;
+
+      border-radius: 9px;
+    }
+
+    .footer-brand b {
       color: white;
-      letter-spacing: .08em;
+
+      letter-spacing: .1em;
     }
 
-    @media(max-width:850px) {
-      nav > a:not(.login) {
+    /* MOBILE */
+
+    @media(max-width:900px) {
+
+      nav a:not(.dashboard-button) {
         display: none;
       }
 
       .hero {
         grid-template-columns: 1fr;
+
         padding-top: 75px;
-        gap: 25px;
+
+        text-align: center;
+      }
+
+      .hero-copy {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero-buttons {
+        justify-content: center;
       }
 
       .hero-art {
-        min-height: 420px;
+        min-height: 390px;
       }
 
-      .experiences,
-      .communities {
+      .community-grid,
+      .feature-grid {
         grid-template-columns: 1fr;
+      }
+
+      .community {
+        min-height: 280px;
       }
     }
 
-    @media(max-width:520px) {
-      .brand span {
-        font-size: 13px;
+    @media(max-width:600px) {
+
+      header {
+        height: 74px;
+
+        padding:
+          0 20px;
+      }
+
+      .brand img {
+        width: 40px;
+        height: 40px;
+      }
+
+      .brand-text small {
+        display: none;
+      }
+
+      .dashboard-button {
+        padding:
+          9px 12px;
+
+        font-size: 12px;
+      }
+
+      .hero,
+      .section {
+        padding-left: 20px;
+        padding-right: 20px;
       }
 
       .hero {
-        padding-top: 60px;
-      }
-
-      h1 {
-        font-size: 48px;
+        padding-top: 65px;
       }
 
       .hero-art {
-        transform: scale(.82);
-        margin: -30px 0;
+        min-height: 340px;
       }
 
-      .actions {
-        flex-direction: column;
+      .orb {
+        width: 310px;
+        height: 310px;
       }
 
-      .button {
-        width: 100%;
+      .logo-card {
+        width: 220px;
+        height: 275px;
       }
 
-      .experience {
-        padding: 26px;
+      .logo-card img {
+        width: 125px;
+        height: 125px;
       }
 
-      .footer {
+      footer {
+        margin-top: 30px;
+
+        padding-left: 20px;
+        padding-right: 20px;
+
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+
+        gap: 18px;
       }
     }
   </style>
@@ -532,20 +916,31 @@
 <body>
 
 <header>
-  <div class="nav">
 
-    <a class="brand" href="/">
-      <div class="logo">AH</div>
-      <span>AFTER HOURS <span>COMMUNITY</span></span>
+  <a class="brand" href="/">
+    <img
+      src="images/afterhours-logo.png"
+      alt="After Hours"
+    >
+
+    <span class="brand-text">
+      <strong>AFTER HOURS</strong>
+      <small>COMMUNITY</small>
+    </span>
+  </a>
+
+  <nav>
+    <a href="#communities">Communities</a>
+    <a href="#about">About</a>
+
+    <a
+      class="dashboard-button"
+      href="/admin/"
+    >
+      Creator Dashboard
     </a>
+  </nav>
 
-    <nav>
-      <a href="#experiences">Experiences</a>
-      <a href="#communities">Communities</a>
-      <a class="login" href="/admin/">Creator Dashboard</a>
-    </nav>
-
-  </div>
 </header>
 
 
@@ -560,22 +955,29 @@
       </p>
 
       <h1>
-        Built for the <em>community.</em><br>
-        Powered by the stream.
+        Where streams become
+        <span>communities.</span>
       </h1>
 
       <p class="hero-copy">
-        Interactive games, collections and community experiences
-        made for streamers and the people who keep coming back.
+        Interactive experiences, collections and
+        community tools built around the creators
+        you love.
       </p>
 
-      <div class="actions">
+      <div class="hero-buttons">
 
-        <a class="button primary" href="#communities">
+        <a
+          class="button primary"
+          href="#communities"
+        >
           Explore Communities →
         </a>
 
-        <a class="button secondary" href="/admin/">
+        <a
+          class="button secondary"
+          href="/admin/"
+        >
           Creator Dashboard
         </a>
 
@@ -588,19 +990,20 @@
 
       <div class="orb"></div>
 
-      <div class="community-card">
+      <div class="logo-card">
 
-        <small>AFTER HOURS</small>
-
-        <div class="spark">✦</div>
+        <img
+          src="images/afterhours-logo.png"
+          alt="After Hours logo"
+        >
 
         <strong>
-          PLAY.<br>
-          COLLECT.<br>
-          CONNECT.
+          AFTER HOURS
         </strong>
 
-        <small>COMMUNITY EXPERIENCES</small>
+        <small>
+          COMMUNITY
+        </small>
 
       </div>
 
@@ -609,147 +1012,220 @@
   </section>
 
 
-  <section id="experiences" class="section">
+  <section
+    id="communities"
+    class="section"
+  >
 
-    <div class="section-heading">
+    <div class="section-title">
 
       <p class="eyebrow">
-        COMMUNITY EXPERIENCES
+        EXPLORE
       </p>
 
       <h2>
-        More than just watching.
+        Communities
       </h2>
 
       <p>
-        After Hours projects give viewers something to collect,
-        compete over and come back for.
+        Every creator gets their own space,
+        their own style and their own community
+        experiences.
       </p>
 
     </div>
 
 
-    <div class="experiences">
+    <div class="community-grid">
 
-      <article class="experience">
+      <a
+        class="community pretty"
+        href="/pretty-massacure/"
+      >
 
-        <span class="tag">LIVE EXPERIENCE</span>
-
-        <h3>🍿 Snack Vault</h3>
-
-        <p>
-          Redeem Snack Pulls during a stream, discover snacks,
-          build your personal collection and climb your
-          community's leaderboard.
-        </p>
-
-        <a class="button primary" href="#communities">
-          Explore Snack Vault →
-        </a>
-
-      </article>
-
-
-      <article class="experience coming">
-
-        <span class="tag">MORE COMING</span>
-
-        <h3>Built to grow.</h3>
-
-        <p>
-          Snack Vault is the beginning. More community games,
-          stream integrations and interactive experiences can
-          live here as After Hours grows.
-        </p>
-
-      </article>
-
-    </div>
-
-  </section>
-
-
-  <section id="communities" class="section">
-
-    <div class="section-heading">
-
-      <p class="eyebrow">
-        COMMUNITIES
-      </p>
-
-      <h2>
-        Find your community.
-      </h2>
-
-      <p>
-        Each creator gets their own experience, collection,
-        leaderboard and style.
-      </p>
-
-    </div>
-
-
-    <div class="communities">
-
-      <a class="creator" href="/pretty-massacure/">
-
-        <div class="creator-logo">
+        <div class="community-icon">
           PM
         </div>
 
-        <div>
-          <h3>Pretty Massacure</h3>
-          <p>Snack Vault · Community Collection</p>
-        </div>
+        <h3>
+          Pretty Massacure
+        </h3>
 
-        <span class="arrow">→</span>
+        <p>
+          Enter Pretty Massacure's Snack Vault,
+          collect snacks from stream pulls and
+          climb the community leaderboard.
+        </p>
+
+        <span class="tag">
+          SNACK VAULT
+        </span>
+
+        <div class="enter">
+          <span>
+            Enter Community
+          </span>
+
+          <span>
+            →
+          </span>
+        </div>
 
       </a>
 
 
-      <div class="creator you">
+      <div class="community">
 
-        <div class="creator-logo">
-          UP
+        <div class="community-icon">
+          AH
         </div>
 
-        <div>
-          <h3>underscorepower</h3>
-          <p>Community page coming next</p>
+        <h3>
+          More coming soon
+        </h3>
+
+        <p>
+          New creator communities and interactive
+          stream experiences will appear here.
+        </p>
+
+        <span class="tag">
+          COMING SOON
+        </span>
+
+        <div class="enter">
+          <span>
+            After Hours
+          </span>
+
+          <span>
+            ✦
+          </span>
         </div>
 
-        <span class="arrow">✦</span>
+      </div>
+
+
+      <div class="community">
+
+        <div class="community-icon">
+          +
+        </div>
+
+        <h3>
+          Creator Spaces
+        </h3>
+
+        <p>
+          Each creator can have their own branded
+          collection, tools and experiences without
+          changing the main After Hours site.
+        </p>
+
+        <span class="tag">
+          EXPANDING
+        </span>
+
+        <div class="enter">
+          <span>
+            Built for communities
+          </span>
+
+          <span>
+            ✦
+          </span>
+        </div>
 
       </div>
 
     </div>
 
-    <p class="creator-section-note">
-      More creator communities can be added without changing Pretty Massacure's Vault.
-    </p>
-
   </section>
 
 
-  <section class="creator-cta">
+  <section
+    id="about"
+    class="section"
+  >
 
-    <p class="eyebrow">
-      FOR CREATORS
-    </p>
+    <div class="section-title">
 
-    <h2>
-      Your community.<br>
-      Your collection. Your style.
-    </h2>
+      <p class="eyebrow">
+        BUILT DIFFERENT
+      </p>
 
-    <p>
-      Manage your Snack Vault, snacks, stream integration,
-      branding and community from one creator dashboard.
-    </p>
+      <h2>
+        More than a website.
+      </h2>
 
-    <a class="button primary" href="/admin/">
-      Open Creator Dashboard →
-    </a>
+      <p>
+        After Hours is the home for the interactive
+        tools and experiences we're building around
+        streaming communities.
+      </p>
+
+    </div>
+
+
+    <div class="feature-grid">
+
+      <article class="feature">
+
+        <span class="number">
+          01
+        </span>
+
+        <h3>
+          Creator Communities
+        </h3>
+
+        <p>
+          Each creator gets a dedicated community
+          page with their own branding and style.
+        </p>
+
+      </article>
+
+
+      <article class="feature">
+
+        <span class="number">
+          02
+        </span>
+
+        <h3>
+          Interactive Experiences
+        </h3>
+
+        <p>
+          Collections, stream rewards, games and
+          community systems can all live under one
+          platform.
+        </p>
+
+      </article>
+
+
+      <article class="feature">
+
+        <span class="number">
+          03
+        </span>
+
+        <h3>
+          Built to Grow
+        </h3>
+
+        <p>
+          Pretty's Snack Vault is the beginning.
+          More creator tools and experiences can
+          be added without rebuilding the entire
+          site.
+        </p>
+
+      </article>
+
+    </div>
 
   </section>
 
@@ -758,15 +1234,22 @@
 
 <footer>
 
-  <div class="footer">
+  <div class="footer-brand">
 
-    <b>AFTER HOURS COMMUNITY</b>
+    <img
+      src="images/afterhours-logo.png"
+      alt=""
+    >
 
-    <span>
-      Community experiences built for stream.
-    </span>
+    <b>
+      AFTER HOURS
+    </b>
 
   </div>
+
+  <span>
+    Community tools built after hours.
+  </span>
 
 </footer>
 
