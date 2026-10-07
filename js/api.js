@@ -11,7 +11,7 @@ export const supabase = createClient(
 export async function getCreator(slug) {
   const { data, error } = await supabase
     .from("creators")
-    .select("id,slug,name,accent_color")
+    .select("id,slug,name,accent_color,logo_url,banner_url,bio")
     .eq("slug", slug)
     .maybeSingle();
 
