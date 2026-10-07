@@ -12,6 +12,9 @@ const $ = id => document.getElementById(id);
 let creator = null;
 let snacks = [];
 
+let pendingLogoFile = null;
+let removeCurrentLogo = false;
+
 
 // ======================================================
 // HELPERS
@@ -354,6 +357,24 @@ async function openDashboard() {
   $("setSlug").value =
     creator.slug || "";
 
+  pendingLogoFile = null;
+  removeCurrentLogo = false;
+
+  $("creatorLogoFile").value = "";
+  $("brandingStatus").textContent = "";
+
+  if (creator.logo_url) {
+    $("creatorLogoPreview").src = creator.logo_url;
+    $("creatorLogoPreview").hidden = false;
+    $("creatorLogoPlaceholder").hidden = true;
+    $("removeLogo").classList.remove("hidden");
+  } else {
+    $("creatorLogoPreview").removeAttribute("src");
+    $("creatorLogoPreview").hidden = true;
+    $("creatorLogoPlaceholder").hidden = false;
+    $("removeLogo").classList.add("hidden");
+  }
+
   document.documentElement.style.setProperty(
     "--accent",
     creator.accent_color || "#ff2d95"
@@ -361,7 +382,6 @@ async function openDashboard() {
 
   await refreshDashboard();
 }
-
 
 // ======================================================
 // REFRESH
@@ -855,10 +875,75 @@ document
 
 
 // ======================================================
-// SETTINGS
+// COMMUNITY LOGO
+// ======================================================
+
+$("creatorLogoFile").addEventListener("change", () => {
+  const file = $("creatorLogoFile").files[0];
+
+  if (!file) return;
+
+  const allowedTypes = [
+    "image/png",
+    "image/jpeg",
+    "image/webp"
+  ];
+
+  if (!allowedTypes.includes(file.type)) {
+    $("brandingStatus").textContent =
+      "Please choose a PNG, JPG or WEBP image.";
+
+    $("creatorLogoFile").value = "";
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    $("brandingStatus").textContent =
+      "Logo must be smaller than 5 MB.";
+
+    $("creatorLogoFile").value = "";
+    return;
+  }
+
+  pendingLogoFile = file;
+  removeCurrentLogo = false;
+
+  $("creatorLogoPreview").src =
+    URL.createObjectURL(file);
+
+  $("creatorLogoPreview").hidden = false;
+  $("creatorLogoPlaceholder").hidden = true;
+  $("removeLogo").classList.remove("hidden");
+
+  $("brandingStatus").textContent =
+    "New logo selected. Click Save branding.";
+});
+
+
+$("removeLogo").addEventListener("click", () => {
+  pendingLogoFile = null;
+  removeCurrentLogo = true;
+
+  $("creatorLogoFile").value = "";
+
+  $("creatorLogoPreview").removeAttribute("src");
+  $("creatorLogoPreview").hidden = true;
+
+  $("creatorLogoPlaceholder").hidden = false;
+  $("removeLogo").classList.add("hidden");
+
+  $("brandingStatus").textContent =
+    "Logo will be removed when you save.";
+});
+
+
+// ======================================================
+// SETTINGS / COMMUNITY BRANDING
 // ======================================================
 
 $("saveSettings").addEventListener("click", async () => {
+  if (!creator) return;
+
   const name = $("setName").value.trim();
   const accentColor = $("setColor").value;
 
@@ -867,35 +952,154 @@ $("saveSettings").addEventListener("click", async () => {
     return;
   }
 
-  const { data, error } = await supabase
-    .from("creators")
-    .update({
-      name,
-      accent_color: accentColor
-    })
-    .eq("id", creator.id)
-    .select()
-    .single();
+  try {
 
-  if (error) {
-    alert(error.message);
-    return;
+    $("brandingStatus").textContent =
+      "Saving branding…";
+
+    let logoUrl = creator.logo_url || null;
+
+
+    // REMOVE LOGO
+
+    if (removeCurrentLogo) {
+      logoUrl = null;
+    }
+
+
+    // UPLOAD NEW LOGO
+
+    if (pendingLogoFile) {
+
+      let extension = "jpg";
+
+      if (pendingLogoFile.type === "image/png") {
+        extension = "png";
+      }
+
+      if (pendingLogoFile.type === "image/webp") {
+        extension = "webp";
+      }
+
+      const path =
+        `${creator.id}/logo.${extension}`;
+
+
+      const { error: uploadError } =
+        await supabase.storage
+          .from("creator-branding")
+          .upload(
+            path,
+            pendingLogoFile,
+            {
+              upsert: true,
+              contentType: pendingLogoFile.type,
+              cacheControl: "3600"
+            }
+          );
+
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+
+      logoUrl =
+        supabase.storage
+          .from("creator-branding")
+          .getPublicUrl(path)
+          .data
+          .publicUrl;
+
+
+      // Stops browser from showing an old cached logo
+
+      logoUrl += `?v=${Date.now()}`;
+    }
+
+
+    // SAVE CREATOR SETTINGS
+
+    const { data, error } = await supabase
+      .from("creators")
+      .update({
+        name,
+        accent_color: accentColor,
+        logo_url: logoUrl
+      })
+      .eq("id", creator.id)
+      .select()
+      .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    creator = data;
+
+
+    // UPDATE DASHBOARD
+
+    $("creatorName").textContent =
+      creator.name;
+
+    $("creatorBadge").textContent =
+      creatorInitials(creator.name);
+
+
+    document.documentElement.style.setProperty(
+      "--accent",
+      creator.accent_color || "#ff2d95"
+    );
+
+
+    pendingLogoFile = null;
+    removeCurrentLogo = false;
+
+    $("creatorLogoFile").value = "";
+
+
+    // UPDATE LOGO PREVIEW
+
+    if (creator.logo_url) {
+
+      $("creatorLogoPreview").src =
+        creator.logo_url;
+
+      $("creatorLogoPreview").hidden = false;
+
+      $("creatorLogoPlaceholder").hidden = true;
+
+      $("removeLogo").classList.remove("hidden");
+
+    } else {
+
+      $("creatorLogoPreview").removeAttribute("src");
+
+      $("creatorLogoPreview").hidden = true;
+
+      $("creatorLogoPlaceholder").hidden = false;
+
+      $("removeLogo").classList.add("hidden");
+    }
+
+
+    $("brandingStatus").textContent =
+      "Branding saved!";
+
+    saveMessage("Saved");
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    $("brandingStatus").textContent =
+      error.message ||
+      "Could not save branding.";
   }
-
-  creator = data;
-
-  $("creatorName").textContent =
-    creator.name;
-
-  $("creatorBadge").textContent =
-    creatorInitials(creator.name);
-
-  document.documentElement.style.setProperty(
-    "--accent",
-    creator.accent_color || "#ff2d95"
-  );
-
-  saveMessage("Saved");
 });
 
 
