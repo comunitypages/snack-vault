@@ -1,31 +1,45 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Snack Vault Dashboard</title>
+
+  <title>Snack Vault Creator Dashboard</title>
+
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/admin.css">
 </head>
 
 <body>
 
+
+<!-- ======================================================
+     LOGIN / CREATE ACCOUNT
+====================================================== -->
+
 <div id="login" class="login">
+
   <div class="loginbox">
-    <i>PM</i>
+
+    <i>SV</i>
 
     <p class="eyebrow">SNACK VAULT</p>
+
     <h1>Creator Dashboard</h1>
 
     <p id="authDescription">
-      Sign in or create your creator account.
+      Sign in or create your Snack Vault account.
     </p>
 
+
     <form id="loginForm">
+
       <input
         id="email"
         type="email"
         placeholder="Email"
+        autocomplete="email"
         required
       >
 
@@ -33,95 +47,355 @@
         id="password"
         type="password"
         placeholder="Password"
+        autocomplete="current-password"
         minlength="6"
         required
       >
 
-      <button id="signInButton" type="submit">
+
+      <button
+        id="signInButton"
+        type="submit"
+      >
         Sign in
       </button>
 
-      <button id="signUpButton" type="button" class="ghost">
+
+      <button
+        id="signUpButton"
+        type="button"
+        class="ghost"
+      >
         Create account
       </button>
+
     </form>
 
+
     <small id="loginMsg"></small>
+
   </div>
+
 </div>
 
 
-<div id="app" class="dashboard hidden">
 
-  <aside>
-    <div class="sidebrand">
-      <i>PM</i>
-      <b>SNACK<br>VAULT</b>
+<!-- ======================================================
+     CREATOR ONBOARDING
+====================================================== -->
+
+<div id="onboarding" class="login hidden">
+
+  <div class="loginbox onboardingbox">
+
+    <i>SV</i>
+
+    <p class="eyebrow">
+      SNACK VAULT
+    </p>
+
+    <h1>Welcome, Creator</h1>
+
+    <p>
+      Create your own Snack Vault or claim an existing
+      vault with an invite code.
+    </p>
+
+
+    <!-- CREATE NEW VAULT -->
+
+    <div class="panel">
+
+      <p class="eyebrow">
+        NEW CREATOR
+      </p>
+
+      <h2>
+        Create a new Vault
+      </h2>
+
+      <p>
+        Starting fresh? Create your own creator page.
+      </p>
+
+
+      <form id="createVaultForm">
+
+        <label>
+          Creator name
+
+          <input
+            id="newCreatorName"
+            type="text"
+            maxlength="50"
+            placeholder="underscorepower"
+            required
+          >
+        </label>
+
+
+        <label>
+          Vault URL
+
+          <input
+            id="newCreatorSlug"
+            type="text"
+            maxlength="40"
+            placeholder="underscorepower"
+            required
+          >
+        </label>
+
+
+        <small>
+          Your public page will use this name in its URL.
+          Use lowercase letters, numbers and hyphens.
+        </small>
+
+
+        <button type="submit">
+          Create My Vault
+        </button>
+
+      </form>
+
     </div>
 
-    <nav>
-      <a href="#overview">Overview</a>
-      <a href="#manage">Snacks</a>
-      <a href="#history">Pull History</a>
-      <a href="#bot">Bot Setup</a>
-      <a href="#settings">Settings</a>
-    </nav>
 
-    <button id="logout" class="ghost">
+    <div class="onboarding-or">
+      <span>OR</span>
+    </div>
+
+
+    <!-- CLAIM EXISTING VAULT -->
+
+    <div class="panel">
+
+      <p class="eyebrow">
+        EXISTING CREATOR
+      </p>
+
+      <h2>
+        Claim an existing Vault
+      </h2>
+
+      <p>
+        Have an invite code? Enter it below to connect
+        this account to your existing Snack Vault.
+      </p>
+
+
+      <form id="claimVaultForm">
+
+        <label>
+          Invite code
+
+          <input
+            id="inviteCode"
+            type="text"
+            placeholder="SV-XXXXXXXXXXXX"
+            autocomplete="off"
+            required
+          >
+        </label>
+
+
+        <button type="submit">
+          Claim My Vault
+        </button>
+
+      </form>
+
+    </div>
+
+
+    <small id="onboardingMsg"></small>
+
+
+    <button
+      id="onboardingLogout"
+      type="button"
+      class="ghost"
+    >
       Sign out
     </button>
+
+  </div>
+
+</div>
+
+
+
+<!-- ======================================================
+     CREATOR DASHBOARD
+====================================================== -->
+
+<div id="app" class="dashboard hidden">
+
+
+  <!-- SIDEBAR -->
+
+  <aside>
+
+    <div class="sidebrand">
+
+      <i id="creatorBadge">
+        SV
+      </i>
+
+      <b>
+        SNACK<br>
+        VAULT
+      </b>
+
+    </div>
+
+
+    <nav>
+
+      <a href="#overview">
+        Overview
+      </a>
+
+      <a href="#manage">
+        Snacks
+      </a>
+
+      <a href="#history">
+        Pull History
+      </a>
+
+      <a href="#bot">
+        Bot Setup
+      </a>
+
+      <a href="#settings">
+        Settings
+      </a>
+
+    </nav>
+
+
+    <button
+      id="logout"
+      class="ghost"
+    >
+      Sign out
+    </button>
+
   </aside>
 
 
+
+  <!-- MAIN DASHBOARD -->
+
   <main>
 
+
     <header class="dashhead">
+
       <div>
-        <p class="eyebrow">CREATOR CONTROL</p>
-        <h1 id="creatorName">Snack Vault</h1>
+
+        <p class="eyebrow">
+          CREATOR CONTROL
+        </p>
+
+        <h1 id="creatorName">
+          Snack Vault
+        </h1>
+
       </div>
 
+
       <span id="saveMsg"></span>
+
     </header>
 
+
+
+    <!-- OVERVIEW -->
 
     <section id="overview">
 
       <div class="dashstats">
 
-        <article>
-          <small>ACTIVE SNACKS</small>
-          <strong id="snackCount">0</strong>
-        </article>
 
         <article>
-          <small>VIEWERS</small>
-          <strong id="viewerCount">0</strong>
+
+          <small>
+            ACTIVE SNACKS
+          </small>
+
+          <strong id="snackCount">
+            0
+          </strong>
+
         </article>
 
-        <article>
-          <small>PULLS</small>
-          <strong id="pullCount">0</strong>
-        </article>
 
         <article>
-          <small>TOP UNIQUE</small>
-          <strong id="leaderCount">0</strong>
+
+          <small>
+            VIEWERS
+          </small>
+
+          <strong id="viewerCount">
+            0
+          </strong>
+
         </article>
+
+
+        <article>
+
+          <small>
+            PULLS
+          </small>
+
+          <strong id="pullCount">
+            0
+          </strong>
+
+        </article>
+
+
+        <article>
+
+          <small>
+            TOP UNIQUE
+          </small>
+
+          <strong id="leaderCount">
+            0
+          </strong>
+
+        </article>
+
 
       </div>
 
     </section>
 
 
+
+    <!-- SNACK MANAGEMENT -->
+
     <section id="manage">
 
       <div class="sectitle">
 
         <div>
-          <p class="eyebrow">MANAGE COLLECTION</p>
-          <h2>Snacks</h2>
+
+          <p class="eyebrow">
+            MANAGE COLLECTION
+          </p>
+
+          <h2>
+            Snacks
+          </h2>
+
         </div>
+
 
         <button id="addSnack">
           + Add Snack
@@ -135,15 +409,20 @@
         <table>
 
           <thead>
+
             <tr>
+
               <th>Snack</th>
               <th>Rarity</th>
               <th>Weight</th>
               <th>Chance</th>
               <th>Status</th>
               <th></th>
+
             </tr>
+
           </thead>
+
 
           <tbody id="snackRows"></tbody>
 
@@ -154,26 +433,44 @@
     </section>
 
 
+
+    <!-- PULL HISTORY -->
+
     <section id="history">
 
       <div class="sectitle">
+
         <div>
-          <p class="eyebrow">ACTIVITY</p>
-          <h2>Recent Pulls</h2>
+
+          <p class="eyebrow">
+            ACTIVITY
+          </p>
+
+          <h2>
+            Recent Pulls
+          </h2>
+
         </div>
+
       </div>
+
 
       <div class="table">
 
         <table>
 
           <thead>
+
             <tr>
+
               <th>Viewer</th>
               <th>Snack</th>
               <th>Time</th>
+
             </tr>
+
           </thead>
+
 
           <tbody id="pullRows"></tbody>
 
@@ -184,27 +481,58 @@
     </section>
 
 
+
+    <!-- BOT SETUP -->
+
     <section id="bot">
 
       <div class="sectitle">
+
         <div>
-          <p class="eyebrow">INTEGRATION</p>
-          <h2>Bot Setup</h2>
+
+          <p class="eyebrow">
+            INTEGRATION
+          </p>
+
+          <h2>
+            Bot Setup
+          </h2>
+
         </div>
+
       </div>
 
 
       <div class="panel">
 
-        <label>Pull endpoint</label>
+
+        <label>
+          Pull endpoint
+        </label>
+
 
         <div class="copy">
-          <input id="endpoint" readonly>
-          <button data-copy="endpoint">Copy</button>
+
+          <input
+            id="endpoint"
+            readonly
+          >
+
+          <button
+            type="button"
+            data-copy="endpoint"
+          >
+            Copy
+          </button>
+
         </div>
 
 
-        <label>Bot API key</label>
+
+        <label>
+          Bot API key
+        </label>
+
 
         <div class="copy">
 
@@ -214,20 +542,33 @@
             readonly
           >
 
-          <button id="generateKey">
+
+          <button
+            id="generateKey"
+            type="button"
+          >
             Generate / Regenerate
           </button>
 
         </div>
 
 
-        <p id="keyWarning" class="warning hidden">
+
+        <p
+          id="keyWarning"
+          class="warning hidden"
+        >
           Copy this key now. It is shown only once.
-          Put it in Mix It Up or Firebot, never in website files.
+          Put it in Mix It Up or Firebot.
+          Never put it in your website files.
         </p>
 
 
-        <h3>Request</h3>
+
+        <h3>
+          Request
+        </h3>
+
 
         <pre>POST [endpoint]
 Content-Type: application/json
@@ -235,121 +576,228 @@ x-snack-api-key: YOUR_KEY
 
 {"username":"REDEEMING_VIEWER"}</pre>
 
+
         <p>
-          The bot prints the response field
+          Your bot prints the response field
           <code>message</code>.
-          The website never calls this endpoint.
+          The public website never performs snack pulls.
         </p>
+
 
       </div>
 
     </section>
 
 
+
+    <!-- SETTINGS -->
+
     <section id="settings">
 
       <div class="sectitle">
+
         <div>
-          <p class="eyebrow">BRANDING</p>
-          <h2>Settings</h2>
+
+          <p class="eyebrow">
+            CREATOR PROFILE
+          </p>
+
+          <h2>
+            Settings
+          </h2>
+
         </div>
+
       </div>
 
 
       <div class="panel settings">
 
+
         <label>
+
           Creator name
-          <input id="setName">
+
+          <input
+            id="setName"
+            type="text"
+          >
+
         </label>
+
 
         <label>
+
           Accent color
-          <input id="setColor" type="color">
+
+          <input
+            id="setColor"
+            type="color"
+          >
+
         </label>
 
-        <button id="saveSettings">
+
+        <label>
+
+          Public Vault URL
+
+          <input
+            id="setSlug"
+            type="text"
+            readonly
+          >
+
+        </label>
+
+
+        <button
+          id="saveSettings"
+          type="button"
+        >
           Save settings
         </button>
+
 
       </div>
 
     </section>
+
 
   </main>
 
 </div>
 
 
-<div id="modal" class="modal hidden">
+
+<!-- ======================================================
+     SNACK EDITOR MODAL
+====================================================== -->
+
+<div
+  id="modal"
+  class="modal hidden"
+>
+
 
   <div class="modalbox">
 
-    <button id="closeModal" class="x">
+
+    <button
+      id="closeModal"
+      class="x"
+      type="button"
+    >
       ×
     </button>
 
-    <p class="eyebrow">SNACK</p>
+
+    <p class="eyebrow">
+      SNACK
+    </p>
+
 
     <h2 id="modalTitle">
       Add Snack
     </h2>
 
 
+
     <form id="snackForm">
 
-      <input id="snackId" type="hidden">
+
+      <input
+        id="snackId"
+        type="hidden"
+      >
 
 
       <label>
+
         Name
-        <input id="sName" required>
+
+        <input
+          id="sName"
+          required
+        >
+
       </label>
 
 
       <label>
+
         Description
-        <textarea id="sDesc"></textarea>
+
+        <textarea
+          id="sDesc"
+        ></textarea>
+
       </label>
 
 
       <label>
+
         Image
+
         <input
           id="sImage"
           type="file"
           accept="image/*"
         >
+
       </label>
 
 
       <label>
+
         Rarity
 
         <select id="sRarity">
-          <option>Common</option>
-          <option>Rare</option>
-          <option>Epic</option>
-          <option>Legendary</option>
+
+          <option>
+            Common
+          </option>
+
+          <option>
+            Rare
+          </option>
+
+          <option>
+            Epic
+          </option>
+
+          <option>
+            Legendary
+          </option>
+
         </select>
 
       </label>
 
 
       <label>
+
         Category
-        <input id="sCategory" value="Snack">
+
+        <input
+          id="sCategory"
+          value="Snack"
+        >
+
       </label>
 
 
       <label>
+
         Weight
+
         <input
           id="sWeight"
           type="number"
           min="0"
           value="50"
         >
+
       </label>
 
 
@@ -366,7 +814,9 @@ x-snack-api-key: YOUR_KEY
       </label>
 
 
+
       <div class="actions">
+
 
         <button
           type="button"
@@ -376,6 +826,7 @@ x-snack-api-key: YOUR_KEY
           Archive
         </button>
 
+
         <button
           type="button"
           id="cancelSnack"
@@ -384,21 +835,29 @@ x-snack-api-key: YOUR_KEY
           Cancel
         </button>
 
-        <button>
+
+        <button type="submit">
           Save snack
         </button>
 
+
       </div>
 
+
     </form>
+
 
   </div>
 
 </div>
 
 
+
 <script src="../js/config.js"></script>
-<script type="module" src="../js/admin.js"></script>
+<script
+  type="module"
+  src="../js/admin.js"
+></script>
 
 </body>
 </html>
