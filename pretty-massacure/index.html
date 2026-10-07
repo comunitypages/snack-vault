@@ -1,10 +1,16 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <title>Snack Vault — Pretty Massacure</title>
+  <title>Pretty Massacure — Snack Vault</title>
+
+  <meta
+    name="description"
+    content="Pretty Massacure's Snack Vault. Redeem Snack Pull on stream, collect snacks and climb the leaderboard."
+  >
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,465 +20,1293 @@
     rel="stylesheet"
   >
 
-  <!-- FIXED: this page is one folder deeper -->
   <link rel="stylesheet" href="../css/style.css">
+
+  <style>
+
+    :root {
+      --pretty-pink: #ff176d;
+      --pretty-hot: #ff2d95;
+      --pretty-purple: #b52cff;
+      --pretty-dark: #08070c;
+    }
+
+
+    /* ================================
+       PRETTY BRANDING
+    ================================= */
+
+    .pretty-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pretty-brand .pretty-logo {
+      width: 48px;
+      height: 48px;
+
+      object-fit: contain;
+
+      filter:
+        drop-shadow(
+          0 0 12px rgba(255,23,109,.3)
+        );
+    }
+
+    .pretty-brand span {
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .pretty-brand b {
+      color: var(--pretty-pink);
+    }
+
+
+    /* ================================
+       HERO CARD LOGO
+    ================================= */
+
+    .pass {
+      overflow: hidden;
+    }
+
+    .pass-logo {
+      width: 105px;
+      height: 105px;
+
+      margin: 10px auto;
+
+      display: block;
+
+      object-fit: contain;
+
+      filter:
+        drop-shadow(
+          0 0 25px rgba(255,23,109,.35)
+        );
+    }
+
+
+    /* ================================
+       EXTRA PRETTY BACKGROUND BRANDING
+    ================================= */
+
+    .pretty-watermark {
+      position: absolute;
+
+      width: 430px;
+      height: 430px;
+
+      right: -130px;
+      bottom: -130px;
+
+      object-fit: contain;
+
+      opacity: .018;
+
+      pointer-events: none;
+
+      transform: rotate(-10deg);
+    }
+
+
+    /* ================================
+       USERNAME VALIDATION
+    ================================= */
+
+    #notice.error {
+      color: #ff6c9f;
+    }
+
+
+    /* ================================
+       MOBILE BRAND
+    ================================= */
+
+    @media(max-width:600px) {
+
+      .pretty-brand .pretty-logo {
+        width: 40px;
+        height: 40px;
+      }
+
+      .pretty-brand span {
+        font-size: 11px;
+      }
+
+      .pass-logo {
+        width: 90px;
+        height: 90px;
+      }
+
+    }
+
+  </style>
 </head>
+
 
 <body>
 
-<div class="glow g1"></div>
-<div class="glow g2"></div>
-
-<header>
-  <a class="brand" href="./">
-    <i>PM</i>
-    <span>PRETTY <b>MASSACURE</b></span>
-  </a>
-
-  <nav>
-    <a href="#collection">Collection</a>
-    <a href="#snacks">Snacks</a>
-    <a href="#leaderboard">Leaderboard</a>
-
-    <!-- FIXED -->
-    <a class="dashlink" href="../admin/">
-      Creator Dashboard
-    </a>
-  </nav>
-</header>
-
-<main>
-
-  <section class="hero">
-
-    <div>
-      <p class="eyebrow">
-        PRETTY MASSACURE · SNACK VAULT
-      </p>
-
-      <h1>
-        How much <em>snack</em> have you found?
-      </h1>
-
-      <p class="sub">
-        Redeem Snack Pull on stream, build your collection,
-        hunt the rare stuff, and climb the community leaderboard.
-      </p>
-
-      <form id="search">
-        <span>@</span>
-
-        <input
-          id="username"
-          maxlength="25"
-          placeholder="Enter your Twitch username"
-          autocomplete="off"
-        >
-
-        <button>
-          View Collection →
-        </button>
-      </form>
-
-      <p id="notice" class="notice"></p>
-    </div>
+  <div class="glow g1"></div>
+  <div class="glow g2"></div>
 
 
-    <div class="art">
+  <!-- ================================
+       HEADER
+  ================================= -->
 
-      <div class="ring r1"></div>
-      <div class="ring r2"></div>
+  <header>
 
-      <div class="pass">
-        <small>SNACK VAULT</small>
+    <a
+      class="brand pretty-brand"
+      href="./"
+    >
 
-        <div>✦</div>
+      <img
+        class="pretty-logo"
+        src="../images/pretty/logo.png"
+        alt="Pretty Massacure"
+      >
 
-        <strong>
-          COLLECT<br>
-          THEM ALL
-        </strong>
-
-        <small>
-          PRETTY MASSACURE
-        </small>
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <section id="collection" class="section">
-
-    <div class="title">
-
-      <div>
-        <p class="eyebrow">YOUR PROFILE</p>
-        <h2 id="profileTitle">Collection</h2>
-      </div>
-
-      <span id="profileStatus">
-        Enter a username to begin
+      <span>
+        PRETTY <b>MASSACURE</b>
       </span>
 
-    </div>
+    </a>
 
 
-    <div class="stats">
+    <nav>
 
-      <article>
-        <small>UNIQUE</small>
-        <strong id="unique">—</strong>
-        <span id="uniqueSub">/ — snacks</span>
-      </article>
+      <a href="#collection">
+        Collection
+      </a>
 
-      <article>
-        <small>TOTAL SNACKS</small>
-        <strong id="total">—</strong>
-        <span>all copies</span>
-      </article>
+      <a href="#snacks">
+        Snacks
+      </a>
 
-      <article>
-        <small>TOTAL PULLS</small>
-        <strong id="pulls">—</strong>
-        <span>lifetime</span>
-      </article>
+      <a href="#leaderboard">
+        Leaderboard
+      </a>
 
-      <article>
-        <small>COMPLETION</small>
-        <strong id="completion">—</strong>
-        <span>unique collection</span>
-      </article>
+      <a
+        class="dashlink"
+        href="../admin/"
+      >
+        Creator Dashboard
+      </a>
 
-    </div>
+    </nav>
 
-  </section>
+  </header>
 
 
-  <section id="snacks" class="section">
 
-    <div class="title">
+  <main>
+
+
+    <!-- ================================
+         HERO
+    ================================= -->
+
+    <section class="hero">
 
       <div>
-        <p class="eyebrow">THE VAULT</p>
-        <h2>Snack Collection</h2>
-      </div>
 
-      <div class="filters">
+        <p class="eyebrow">
+          PRETTY MASSACURE · SNACK VAULT
+        </p>
 
-        <input
-          id="filter"
-          placeholder="Search snacks…"
+
+        <h1>
+          How much
+          <em>snack</em>
+          <br>
+          have you found?
+        </h1>
+
+
+        <p class="sub">
+          Redeem Snack Pull on stream, build your
+          collection, hunt the rare stuff, and climb
+          the community leaderboard.
+        </p>
+
+
+        <!--
+          The unusual field name + ignore attributes
+          help prevent password managers from putting
+          an email address in this box.
+        -->
+
+        <form
+          id="search"
+          autocomplete="off"
+          data-form-type="other"
         >
 
-        <select id="rarity">
-          <option>All rarities</option>
-          <option>Common</option>
-          <option>Rare</option>
-          <option>Epic</option>
-          <option>Legendary</option>
-        </select>
+          <span>@</span>
+
+          <input
+            id="username"
+            name="pretty_snack_vault_twitch_handle"
+            type="text"
+            maxlength="25"
+            placeholder="Enter your Twitch username"
+            autocomplete="off"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-bwignore="true"
+          >
+
+          <button type="submit">
+            View Collection →
+          </button>
+
+        </form>
+
+
+        <p
+          id="notice"
+          class="notice"
+        ></p>
 
       </div>
 
-    </div>
-
-    <div id="grid" class="grid"></div>
-
-  </section>
 
 
-  <section id="leaderboard" class="section">
+      <!-- HERO ART -->
 
-    <div class="title">
-      <div>
-        <p class="eyebrow">COMMUNITY</p>
-        <h2>Leaderboard</h2>
-      </div>
-    </div>
+      <div class="art">
 
-    <div class="board">
-
-      <div class="row head">
-        <span>#</span>
-        <span>Viewer</span>
-        <span>Unique</span>
-        <span>Total</span>
-      </div>
-
-      <div id="lb"></div>
-
-    </div>
-
-  </section>
-
-</main>
+        <div class="ring r1"></div>
+        <div class="ring r2"></div>
 
 
-<footer>
-  <b>SNACK VAULT</b>
-  <span>Pretty Massacure · powered by the stream</span>
-</footer>
+        <div class="pass">
 
-
-<!-- FIXED -->
-<script src="../js/config.js"></script>
-
-<script type="module">
-
-import {
-  creator as getCreator,
-  snacks as getSnacks,
-  collection
-} from '../js/api.js';
-
-import {
-  leaderboard
-} from '../js/api.js';
-
-
-const $ = x => document.getElementById(x);
-
-const esc = s =>
-  String(s ?? '').replace(
-    /[&<>"']/g,
-    m => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[m])
-  );
-
-
-let c;
-let all = [];
-let owned = {};
-
-
-/*
-  IMPORTANT:
-  This page ALWAYS belongs to Pretty Massacure.
-  It does not use the global default creator anymore.
-*/
-const slug = 'pretty-massacure';
-
-
-function render() {
-
-  const q = $('filter').value.toLowerCase();
-  const r = $('rarity').value;
-
-  const list = all.filter(
-    s =>
-      (r === 'All rarities' || s.rarity === r) &&
-      s.name.toLowerCase().includes(q)
-  );
-
-
-  $('grid').innerHTML =
-    list.map(s => {
-
-      const n = owned[s.id] || 0;
-
-      return `
-        <article class="card ${n ? 'owned' : 'locked'}">
-
-          <div class="pic">
-
-            ${
-              s.image_url
-                ? `<img src="${esc(s.image_url)}" alt="">`
-                : '<i>✦</i>'
-            }
-
-            ${n ? `<b>x${n}</b>` : ''}
-
-          </div>
-
-          <div class="info">
-
-            <div>
-              <h3>${esc(s.name)}</h3>
-              <p>${esc(s.category || 'Snack')}</p>
-            </div>
-
-            <span class="rarity ${s.rarity.toLowerCase()}">
-              ${esc(s.rarity)}
-            </span>
-
-          </div>
-
-          <small class="state">
-            ${n ? 'COLLECTED' : '🔒 UNDISCOVERED'}
+          <small>
+            SNACK VAULT
           </small>
 
+
+          <img
+            class="pass-logo"
+            src="../images/pretty/logo.png"
+            alt=""
+          >
+
+
+          <strong>
+            COLLECT
+            <br>
+            THEM ALL
+          </strong>
+
+
+          <small>
+            PRETTY MASSACURE
+          </small>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ================================
+         COLLECTION
+    ================================= -->
+
+    <section
+      id="collection"
+      class="section"
+    >
+
+      <div class="title">
+
+        <div>
+
+          <p class="eyebrow">
+            YOUR PROFILE
+          </p>
+
+          <h2 id="profileTitle">
+            Collection
+          </h2>
+
+        </div>
+
+
+        <span id="profileStatus">
+          Enter a username to begin
+        </span>
+
+      </div>
+
+
+
+      <div class="stats">
+
+
+        <article>
+
+          <small>
+            UNIQUE
+          </small>
+
+          <strong id="unique">
+            —
+          </strong>
+
+          <span id="uniqueSub">
+            / — snacks
+          </span>
+
         </article>
-      `;
-
-    }).join('') ||
-    '<div class="empty">No snacks match.</div>';
-}
 
 
-async function loadUser(u) {
 
-  u = u.trim().replace(/^@/, '');
+        <article>
 
-  if (!u) return;
+          <small>
+            TOTAL SNACKS
+          </small>
 
+          <strong id="total">
+            —
+          </strong>
 
-  $('profileStatus').textContent = 'Loading…';
+          <span>
+            all copies
+          </span>
 
-
-  try {
-
-    const d = await collection(c.id, u);
-
-
-    owned = Object.fromEntries(
-      (d.snacks || []).map(
-        x => [x.snack_id, x.quantity]
-      )
-    );
+        </article>
 
 
-    $('profileTitle').textContent =
-      `${d.display_name || u}'s Collection`;
+
+        <article>
+
+          <small>
+            TOTAL PULLS
+          </small>
+
+          <strong id="pulls">
+            —
+          </strong>
+
+          <span>
+            lifetime
+          </span>
+
+        </article>
 
 
-    $('unique').textContent =
-      d.unique_snacks || 0;
+
+        <article>
+
+          <small>
+            COMPLETION
+          </small>
+
+          <strong id="completion">
+            —
+          </strong>
+
+          <span>
+            unique collection
+          </span>
+
+        </article>
+
+      </div>
+
+    </section>
 
 
-    $('uniqueSub').textContent =
-      `/ ${all.length} snacks`;
+
+    <!-- ================================
+         SNACK COLLECTION
+    ================================= -->
+
+    <section
+      id="snacks"
+      class="section"
+    >
+
+      <div class="title">
+
+        <div>
+
+          <p class="eyebrow">
+            THE VAULT
+          </p>
+
+          <h2>
+            Snack Collection
+          </h2>
+
+        </div>
 
 
-    $('total').textContent =
-      d.total_snacks || 0;
+        <div class="filters">
+
+          <input
+            id="filter"
+            name="snack_filter"
+            type="search"
+            placeholder="Search snacks…"
+            autocomplete="off"
+          >
 
 
-    $('pulls').textContent =
-      d.total_pulls || 0;
+          <select id="rarity">
+
+            <option>
+              All rarities
+            </option>
+
+            <option>
+              Common
+            </option>
+
+            <option>
+              Rare
+            </option>
+
+            <option>
+              Epic
+            </option>
+
+            <option>
+              Legendary
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
 
 
-    $('completion').textContent =
-      all.length
-        ? Math.round(
-            ((d.unique_snacks || 0) / all.length) * 100
-          ) + '%'
-        : '0%';
+      <div
+        id="grid"
+        class="grid"
+      ></div>
+
+    </section>
 
 
-    $('profileStatus').textContent =
-      '@' + (d.display_name || u);
+
+    <!-- ================================
+         LEADERBOARD
+    ================================= -->
+
+    <section
+      id="leaderboard"
+      class="section"
+    >
+
+      <div class="title">
+
+        <div>
+
+          <p class="eyebrow">
+            COMMUNITY
+          </p>
+
+          <h2>
+            Leaderboard
+          </h2>
+
+        </div>
+
+      </div>
 
 
-    render();
+
+      <div class="board">
+
+        <div class="row head">
+
+          <span>#</span>
+
+          <span>
+            Viewer
+          </span>
+
+          <span>
+            Unique
+          </span>
+
+          <span>
+            Total
+          </span>
+
+        </div>
 
 
-    history.replaceState(
-      {},
-      '',
-      `?user=${encodeURIComponent(u)}`
-    );
+        <div id="lb"></div>
 
-  }
-  catch (e) {
+      </div>
 
-    console.error(e);
-
-    $('profileStatus').textContent =
-      'Could not load';
-
-    $('notice').textContent =
-      'That collection could not be loaded.';
-  }
-}
+    </section>
 
 
-async function init() {
-
-  try {
-
-    c = await getCreator(slug);
-
-    if (!c) {
-      throw Error('Creator not found');
-    }
+  </main>
 
 
-    document.documentElement.style.setProperty(
-      '--accent',
-      c.accent_color || '#ff2d95'
-    );
+
+  <!-- ================================
+       FOOTER
+  ================================= -->
+
+  <footer>
+
+    <div
+      style="
+        display:flex;
+        align-items:center;
+        gap:10px;
+      "
+    >
+
+      <img
+        src="../images/pretty/logo.png"
+        alt=""
+        style="
+          width:34px;
+          height:34px;
+          object-fit:contain;
+        "
+      >
+
+      <b>
+        SNACK VAULT
+      </b>
+
+    </div>
 
 
-    all = await getSnacks(c.id);
+    <span>
+      Pretty Massacure · powered by the stream
+    </span>
 
-    render();
-
-
-    const u =
-      new URLSearchParams(location.search).get('user');
+  </footer>
 
 
-    if (u) {
 
-      $('username').value = u;
+  <!-- ================================
+       SUPABASE CONFIG
+  ================================= -->
 
-      await loadUser(u);
-    }
-
-
-    const l = await leaderboard(c.id);
+  <script src="../js/config.js"></script>
 
 
-    $('lb').innerHTML =
-      l.length
-        ? l.map(
-            (x, i) => `
-              <div class="row">
-                <b>${i + 1}</b>
-                <strong>${esc(x.display_name)}</strong>
-                <span>${x.unique_snacks}</span>
-                <span>${x.total_snacks}</span>
+
+  <script type="module">
+
+    import {
+      creator as getCreator,
+      snacks as getSnacks,
+      collection,
+      leaderboard
+    } from "../js/api.js";
+
+
+    const $ = id =>
+      document.getElementById(id);
+
+
+
+    /* ================================
+       HTML ESCAPE
+    ================================= */
+
+    const esc = value =>
+      String(value ?? "")
+        .replace(
+          /[&<>"']/g,
+          character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+          }[character])
+        );
+
+
+
+    /*
+      This page ALWAYS belongs to Pretty.
+
+      It no longer depends on the default creator
+      from config.js.
+    */
+
+    const slug =
+      "pretty-massacure";
+
+
+    let creatorData = null;
+
+    let allSnacks = [];
+
+    let ownedSnacks = {};
+
+
+
+    /* ================================
+       RENDER SNACKS
+    ================================= */
+
+    function renderSnacks() {
+
+      const searchValue =
+        $("filter")
+          .value
+          .trim()
+          .toLowerCase();
+
+
+      const rarityValue =
+        $("rarity").value;
+
+
+
+      const filtered =
+        allSnacks.filter(snack => {
+
+          const rarityMatches =
+            rarityValue === "All rarities" ||
+            snack.rarity === rarityValue;
+
+
+          const searchMatches =
+            String(snack.name || "")
+              .toLowerCase()
+              .includes(searchValue);
+
+
+          return (
+            rarityMatches &&
+            searchMatches
+          );
+
+        });
+
+
+
+      if (!filtered.length) {
+
+        $("grid").innerHTML =
+          `<div class="empty">
+             No snacks match.
+           </div>`;
+
+        return;
+
+      }
+
+
+
+      $("grid").innerHTML =
+        filtered.map(snack => {
+
+          const quantity =
+            Number(
+              ownedSnacks[snack.id] || 0
+            );
+
+
+          const owned =
+            quantity > 0;
+
+
+          const rarity =
+            snack.rarity || "Common";
+
+
+          return `
+
+            <article
+              class="
+                card
+                ${owned ? "owned" : "locked"}
+              "
+            >
+
+              <div class="pic">
+
+                ${
+                  snack.image_url
+
+                    ? `
+                      <img
+                        src="${esc(snack.image_url)}"
+                        alt="${esc(snack.name)}"
+                      >
+                    `
+
+                    : `
+                      <i>✦</i>
+                    `
+                }
+
+
+                ${
+                  owned
+
+                    ? `
+                      <b>
+                        x${quantity}
+                      </b>
+                    `
+
+                    : ""
+                }
+
               </div>
-            `
-          ).join('')
-        : '<div class="empty">No pulls yet.</div>';
-
-  }
-  catch (e) {
-
-    console.error(e);
-
-    $('notice').textContent =
-      'Snack Vault could not load Pretty Massacure.';
-  }
-}
 
 
-$('search').onsubmit = e => {
 
-  e.preventDefault();
+              <div class="info">
 
-  loadUser(
-    $('username').value
-  );
-};
+                <div>
+
+                  <h3>
+                    ${esc(snack.name)}
+                  </h3>
+
+                  <p>
+                    ${esc(
+                      snack.category ||
+                      "Snack"
+                    )}
+                  </p>
+
+                </div>
 
 
-$('filter').oninput = render;
-$('rarity').onchange = render;
+                <span
+                  class="
+                    rarity
+                    ${esc(
+                      rarity.toLowerCase()
+                    )}
+                  "
+                >
+                  ${esc(rarity)}
+                </span>
+
+              </div>
 
 
-init();
 
-</script>
+              <small class="state">
+
+                ${
+                  owned
+
+                    ? "COLLECTED"
+
+                    : "🔒 UNDISCOVERED"
+                }
+
+              </small>
+
+            </article>
+
+          `;
+
+        }).join("");
+
+    }
+
+
+
+    /* ================================
+       LOAD VIEWER
+    ================================= */
+
+    async function loadUser(
+      rawUsername
+    ) {
+
+      const username =
+        String(rawUsername || "")
+          .trim()
+          .replace(/^@/, "");
+
+
+
+      if (!username) {
+
+        $("notice").textContent =
+          "Enter your Twitch username.";
+
+        $("notice")
+          .classList
+          .add("error");
+
+        return;
+
+      }
+
+
+
+      /*
+        Twitch usernames only use:
+        letters
+        numbers
+        underscores
+
+        Therefore an email address gets rejected.
+      */
+
+      if (
+        !/^[A-Za-z0-9_]{1,25}$/
+          .test(username)
+      ) {
+
+        $("username").value = "";
+
+        $("notice").textContent =
+          "Enter a Twitch username, not an email address.";
+
+        $("notice")
+          .classList
+          .add("error");
+
+        $("username").focus();
+
+        return;
+
+      }
+
+
+
+      $("notice").textContent = "";
+
+      $("notice")
+        .classList
+        .remove("error");
+
+
+      $("profileStatus")
+        .textContent =
+          "Loading…";
+
+
+
+      try {
+
+        const data =
+          await collection(
+            creatorData.id,
+            username
+          );
+
+
+
+        /*
+          Turn the collection into:
+          {
+            snack-id: quantity
+          }
+        */
+
+        ownedSnacks =
+          Object.fromEntries(
+
+            (data.snacks || [])
+              .map(item => [
+
+                item.snack_id,
+
+                Number(
+                  item.quantity || 0
+                )
+
+              ])
+
+          );
+
+
+
+        const displayName =
+          data.display_name ||
+          username;
+
+
+
+        $("profileTitle")
+          .textContent =
+            `${displayName}'s Collection`;
+
+
+
+        $("unique")
+          .textContent =
+            Number(
+              data.unique_snacks || 0
+            );
+
+
+
+        $("uniqueSub")
+          .textContent =
+            `/ ${allSnacks.length} snacks`;
+
+
+
+        $("total")
+          .textContent =
+            Number(
+              data.total_snacks || 0
+            );
+
+
+
+        $("pulls")
+          .textContent =
+            Number(
+              data.total_pulls || 0
+            );
+
+
+
+        const completion =
+          allSnacks.length
+
+            ? Math.round(
+                (
+                  Number(
+                    data.unique_snacks || 0
+                  )
+                  /
+                  allSnacks.length
+                )
+                * 100
+              )
+
+            : 0;
+
+
+
+        $("completion")
+          .textContent =
+            `${completion}%`;
+
+
+
+        $("profileStatus")
+          .textContent =
+            `@${displayName}`;
+
+
+
+        renderSnacks();
+
+
+
+        /*
+          Give viewers a shareable collection URL:
+          /pretty-massacure/?user=username
+        */
+
+        const url =
+          new URL(
+            window.location.href
+          );
+
+
+        url.search = "";
+
+
+        url.searchParams.set(
+          "user",
+          username
+        );
+
+
+        history.replaceState(
+          {},
+          "",
+          url.pathname +
+          url.search +
+          url.hash
+        );
+
+
+
+      } catch (error) {
+
+        console.error(error);
+
+
+        $("profileStatus")
+          .textContent =
+            "Could not load";
+
+
+        $("notice")
+          .textContent =
+            "That collection could not be loaded.";
+
+
+        $("notice")
+          .classList
+          .add("error");
+
+      }
+
+    }
+
+
+
+    /* ================================
+       INITIALIZE PAGE
+    ================================= */
+
+    async function init() {
+
+      try {
+
+        creatorData =
+          await getCreator(slug);
+
+
+
+        if (!creatorData) {
+
+          throw new Error(
+            "Pretty Massacure creator not found."
+          );
+
+        }
+
+
+
+        /*
+          Creator accent color can still override
+          the shared Snack Vault accent.
+        */
+
+        document.documentElement
+          .style
+          .setProperty(
+            "--accent",
+            creatorData.accent_color ||
+            "#ff176d"
+          );
+
+
+
+        allSnacks =
+          await getSnacks(
+            creatorData.id
+          );
+
+
+
+        renderSnacks();
+
+
+
+        /*
+          Only load a username from ?user=.
+
+          We NEVER use dashboard login information,
+          Supabase email or creator account data here.
+        */
+
+        const params =
+          new URLSearchParams(
+            window.location.search
+          );
+
+
+        const urlUser =
+          params.get("user");
+
+
+
+        if (
+          urlUser &&
+          /^[A-Za-z0-9_]{1,25}$/
+            .test(urlUser)
+        ) {
+
+          $("username").value =
+            urlUser;
+
+
+          await loadUser(
+            urlUser
+          );
+
+        } else {
+
+          /*
+            Clear browser autofill on page load.
+          */
+
+          $("username").value =
+            "";
+
+
+          setTimeout(() => {
+
+            const current =
+              $("username").value;
+
+
+            /*
+              If a password manager inserted an
+              email after page load, remove it.
+            */
+
+            if (
+              current.includes("@") ||
+              current.includes(".com")
+            ) {
+
+              $("username").value =
+                "";
+
+            }
+
+          }, 500);
+
+        }
+
+
+
+        /* ================================
+           LEADERBOARD
+        ================================= */
+
+        const leaders =
+          await leaderboard(
+            creatorData.id
+          );
+
+
+
+        if (!leaders.length) {
+
+          $("lb").innerHTML =
+            `<div class="empty">
+               No pulls yet.
+             </div>`;
+
+        } else {
+
+          $("lb").innerHTML =
+            leaders.map(
+              (viewer, index) => `
+
+                <div class="row">
+
+                  <b>
+                    ${index + 1}
+                  </b>
+
+                  <strong>
+                    ${esc(
+                      viewer.display_name
+                    )}
+                  </strong>
+
+                  <span>
+                    ${
+                      viewer.unique_snacks
+                    }
+                  </span>
+
+                  <span>
+                    ${
+                      viewer.total_snacks
+                    }
+                  </span>
+
+                </div>
+
+              `
+            ).join("");
+
+        }
+
+
+
+      } catch (error) {
+
+        console.error(error);
+
+
+        $("notice").textContent =
+          "Pretty Massacure's Snack Vault could not be loaded.";
+
+
+        $("notice")
+          .classList
+          .add("error");
+
+      }
+
+    }
+
+
+
+    /* ================================
+       EVENTS
+    ================================= */
+
+    $("search")
+      .addEventListener(
+        "submit",
+        event => {
+
+          event.preventDefault();
+
+
+          loadUser(
+            $("username").value
+          );
+
+        }
+      );
+
+
+
+    $("filter")
+      .addEventListener(
+        "input",
+        renderSnacks
+      );
+
+
+
+    $("rarity")
+      .addEventListener(
+        "change",
+        renderSnacks
+      );
+
+
+
+    init();
+
+  </script>
 
 </body>
 </html>
