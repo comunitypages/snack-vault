@@ -102,23 +102,27 @@ async function connectCreatorAccount(user) {
 
 async function load() {
 
+  // getSession() is correct here because having no session on the
+  // login page is completely normal and should NOT throw an error.
   const {
-    data: { user },
-    error
-  } = await supabase.auth.getUser();
-
-  if (error) {
-    throw error;
-  }
+    data: { session }
+  } = await supabase.auth.getSession();
 
 
-  if (!user) {
+  if (!session?.user) {
+
+    creator = null;
 
     $("login").classList.remove("hidden");
     $("app").classList.add("hidden");
 
+    setLoginMessage("");
+
     return;
   }
+
+
+  const user = session.user;
 
 
   try {
@@ -188,15 +192,25 @@ $("loginForm").addEventListener(
     setLoginMessage("Signing in…");
 
 
-    const { error } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+    const {
+      data,
+      error
+    } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
 
 
     if (error) {
       setLoginMessage(error.message);
+      return;
+    }
+
+
+    if (!data?.session) {
+      setLoginMessage(
+        "Sign in succeeded, but no session was created. Please try again."
+      );
       return;
     }
 
@@ -265,21 +279,22 @@ $("signUpButton").addEventListener(
     }
 
 
-    // Supabase may require email verification.
-    if (!data.session) {
+    // If email confirmation is enabled, Supabase creates the
+    // account but does not give us a logged-in session yet.
+    if (!data?.session) {
 
       setLoginMessage(
-        "Account created! Check your email to confirm your account, then return here and sign in."
+        "Account created! Check your email to confirm your account, then come back here and sign in."
       );
 
       return;
     }
 
 
-    if (!data.user) {
+    if (!data?.user) {
 
       setLoginMessage(
-        "Account created, but the user session could not be loaded. Try signing in."
+        "Account created. Please sign in with your new account."
       );
 
       return;
@@ -319,6 +334,9 @@ $("logout").addEventListener(
   async () => {
 
     await supabase.auth.signOut();
+
+    creator = null;
+    snacks = [];
 
     location.reload();
   }
@@ -364,6 +382,7 @@ async function loadSnacks() {
 
   snacks = data || [];
 
+
   $("snackCount").textContent =
     snacks.filter(
       snack =>
@@ -398,6 +417,14 @@ async function loadStats() {
       );
 
 
+  if (viewerResult.error) {
+    console.error(
+      "Viewer count error:",
+      viewerResult.error
+    );
+  }
+
+
   $("viewerCount").textContent =
     viewerResult.count || 0;
 
@@ -418,12 +445,21 @@ async function loadStats() {
       );
 
 
+  if (pullResult.error) {
+    console.error(
+      "Pull count error:",
+      pullResult.error
+    );
+  }
+
+
   $("pullCount").textContent =
     pullResult.count || 0;
 
 
   const {
-    data: leaderboardData
+    data: leaderboardData,
+    error: leaderboardError
   } = await supabase
     .from("leaderboard")
     .select("unique_snacks")
@@ -438,6 +474,14 @@ async function loadStats() {
       }
     )
     .limit(1);
+
+
+  if (leaderboardError) {
+    console.error(
+      "Leaderboard error:",
+      leaderboardError
+    );
+  }
 
 
   $("leaderCount").textContent =
@@ -627,6 +671,11 @@ async function loadPullHistory() {
 
 
   if (error) {
+
+    console.error(
+      "Pull history error:",
+      error
+    );
 
     $("pullRows").innerHTML = `
       <tr>
@@ -819,7 +868,6 @@ $("snackForm").addEventListener(
       $("sImage").files[0];
 
 
-    // Upload a new image if selected.
     if (file) {
 
       const safeFileName =
@@ -1182,9 +1230,7 @@ $("saveSettings").addEventListener(
 supabase.auth.onAuthStateChange(
   (event, session) => {
 
-    if (
-      event === "SIGNED_OUT"
-    ) {
+    if (event === "SIGNED_OUT") {
 
       creator = null;
       snacks = [];
@@ -1196,6 +1242,8 @@ supabase.auth.onAuthStateChange(
       $("login").classList.remove(
         "hidden"
       );
+
+      setLoginMessage("");
     }
   }
 );
