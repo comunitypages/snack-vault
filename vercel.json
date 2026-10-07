@@ -1,17 +1,17 @@
 {
   "cleanUrls": true,
-  "trailingSlash": true,
+  "trailingSlash": false,
   "redirects": [
     {
-      "source": "/pretty-massacure/",
-      "destination": "/pretty-massacre/",
+      "source": "/pretty-massacure",
+      "destination": "/pretty-massacre",
       "permanent": true
     }
   ],
   "rewrites": [
     {
-      "source": "/:slug/",
-      "destination": "/creator/index.html?slug=:slug"
+      "source": "/:slug",
+      "destination": "/creator?slug=:slug"
     }
   ]
 }
