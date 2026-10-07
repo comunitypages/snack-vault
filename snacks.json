@@ -1,0 +1,562 @@
+[
+  {
+    "name": "Popcorn",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Sun Chips",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Sour Cream and Cheddar chips",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Oreos",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Goldfish",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Monster",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Doritos",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Pretzels",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Skittles",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Beaver nuggets",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Hershey bar",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Girl Scout cookies",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Chocolate easter bunny",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "cotton candy",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a funnel cake",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "deep fried butter",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "deep fried Oreos",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "dip in dots",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "deep fried ice cream",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Choco taco",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a banana split",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "beignets",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a s'more",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Flaming fire flakes",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "deep fried snickers",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "deep fried twinkie",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a chocolate covered banana",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "fudge",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "French fries",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Mozzarella sticks",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Pickles",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Slim Jim",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Jerky",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "sunflower seeds",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Kit Kat",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Trail mix",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Snickers",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Peanut butter crackers",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "chocolate covered cherries",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "chocolate covered raisins",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "gummy dicks",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "gummy boobs",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Milk duds",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Mike n Ikes",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "cereal",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "sweet tart ropes",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "chocolate chip cookies",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Cotton Candy gummy dicks",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Twix",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Twix ice cream",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Cheez its",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Flaming hot Cheetos",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Sour Patch Kids",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Honey Bun",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "M & M's",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Nerds Gummy Clusters",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Reese's Peanut Butter Cups",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Grandma's Cookies",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a KIND granola bar",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Pop Tart",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Butterfinger",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a CRUNCH bar",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Milky way",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "NutterButters",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Almond Joy",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Mounds",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Chex Mix",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Buggles",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "Takis",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  },
+  {
+    "name": "a Rice Krispies Treat",
+    "rarity": "Common",
+    "category": "Snack",
+    "weight": 50,
+    "enabled": true,
+    "description": ""
+  }
+]
