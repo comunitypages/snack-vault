@@ -1,1 +1,774 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Snack Vault — Pretty Massacure</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/style.css"></head><body><div class="glow g1"></div><div class="glow g2"></div><header><a class="brand" href="#"><i>PM</i><span>PRETTY <b>MASSACURE</b></span></a><nav><a href="#collection">Collection</a><a href="#snacks">Snacks</a><a href="#leaderboard">Leaderboard</a><a class="dashlink" href="admin/">Creator Dashboard</a></nav></header><main><section class="hero"><div><p class="eyebrow">PRETTY MASSACURE · SNACK VAULT</p><h1>How much <em>snack</em> have you found?</h1><p class="sub">Redeem Snack Pull on stream, build your collection, hunt the rare stuff, and climb the community leaderboard.</p><form id="search"><span>@</span><input id="username" maxlength="25" placeholder="Enter your Twitch username" autocomplete="off"><button>View Collection →</button></form><p id="notice" class="notice"></p></div><div class="art"><div class="ring r1"></div><div class="ring r2"></div><div class="pass"><small>SNACK VAULT</small><div>✦</div><strong>COLLECT<br>THEM ALL</strong><small>PRETTY MASSACURE</small></div></div></section><section id="collection" class="section"><div class="title"><div><p class="eyebrow">YOUR PROFILE</p><h2 id="profileTitle">Collection</h2></div><span id="profileStatus">Enter a username to begin</span></div><div class="stats"><article><small>UNIQUE</small><strong id="unique">—</strong><span id="uniqueSub">/ — snacks</span></article><article><small>TOTAL SNACKS</small><strong id="total">—</strong><span>all copies</span></article><article><small>TOTAL PULLS</small><strong id="pulls">—</strong><span>lifetime</span></article><article><small>COMPLETION</small><strong id="completion">—</strong><span>unique collection</span></article></div></section><section id="snacks" class="section"><div class="title"><div><p class="eyebrow">THE VAULT</p><h2>Snack Collection</h2></div><div class="filters"><input id="filter" placeholder="Search snacks…"><select id="rarity"><option>All rarities</option><option>Common</option><option>Rare</option><option>Epic</option><option>Legendary</option></select></div></div><div id="grid" class="grid"></div></section><section id="leaderboard" class="section"><div class="title"><div><p class="eyebrow">COMMUNITY</p><h2>Leaderboard</h2></div></div><div class="board"><div class="row head"><span>#</span><span>Viewer</span><span>Unique</span><span>Total</span></div><div id="lb"></div></div></section></main><footer><b>SNACK VAULT</b><span>Pretty Massacure · powered by the stream</span></footer><script src="js/config.js"></script><script type="module">import{creator as getCreator,snacks as getSnacks,collection,getLeaderboard as nope}from'./js/api.js';import{leaderboard}from'./js/api.js';const $=x=>document.getElementById(x),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));let c,all=[],owned={};const slug=new URLSearchParams(location.search).get('creator')||window.SNACK_VAULT_CONFIG.DEFAULT_CREATOR_SLUG;function render(){let q=$('filter').value.toLowerCase(),r=$('rarity').value;let list=all.filter(s=>(r==='All rarities'||s.rarity===r)&&s.name.toLowerCase().includes(q));$('grid').innerHTML=list.map(s=>{let n=owned[s.id]||0;return `<article class="card ${n?'owned':'locked'}"><div class="pic">${s.image_url?`<img src="${esc(s.image_url)}" alt="">`:'<i>✦</i>'}${n?`<b>x${n}</b>`:''}</div><div class="info"><div><h3>${esc(s.name)}</h3><p>${esc(s.category||'Snack')}</p></div><span class="rarity ${s.rarity.toLowerCase()}">${esc(s.rarity)}</span></div><small class="state">${n?'COLLECTED':'🔒 UNDISCOVERED'}</small></article>`}).join('')||'<div class="empty">No snacks match.</div>'}async function loadUser(u){u=u.trim().replace(/^@/,'');if(!u)return;$('profileStatus').textContent='Loading…';try{let d=await collection(c.id,u);owned=Object.fromEntries((d.snacks||[]).map(x=>[x.snack_id,x.quantity]));$('profileTitle').textContent=`${d.display_name||u}'s Collection`;$('unique').textContent=d.unique_snacks||0;$('uniqueSub').textContent=`/ ${all.length} snacks`;$('total').textContent=d.total_snacks||0;$('pulls').textContent=d.total_pulls||0;$('completion').textContent=all.length?Math.round((d.unique_snacks||0)/all.length*100)+'%':'0%';$('profileStatus').textContent='@'+(d.display_name||u);render();history.replaceState({},'',`?creator=${encodeURIComponent(slug)}&user=${encodeURIComponent(u)}`)}catch(e){console.error(e);$('profileStatus').textContent='Could not load';$('notice').textContent='That collection could not be loaded.'}}async function init(){try{c=await getCreator(slug);if(!c)throw Error('Creator not found');document.documentElement.style.setProperty('--accent',c.accent_color||'#ff2d95');all=await getSnacks(c.id);render();let u=new URLSearchParams(location.search).get('user');if(u){$('username').value=u;await loadUser(u)}let l=await leaderboard(c.id);$('lb').innerHTML=l.length?l.map((x,i)=>`<div class="row"><b>${i+1}</b><strong>${esc(x.display_name)}</strong><span>${x.unique_snacks}</span><span>${x.total_snacks}</span></div>`).join(''):'<div class="empty">No pulls yet.</div>'}catch(e){console.error(e);$('notice').textContent='Snack Vault is not configured yet. Add your Supabase URL and publishable key in js/config.js.'}}$('search').onsubmit=e=>{e.preventDefault();loadUser($('username').value)};$('filter').oninput=render;$('rarity').onchange=render;init();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>After Hours Community</title>
+  <meta
+    name="description"
+    content="After Hours Community — interactive community experiences, games, collections, and creator tools built for stream."
+  >
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      --bg: #07070a;
+      --panel: #0e0e14;
+      --panel2: #13131b;
+      --border: rgba(255,255,255,.09);
+      --text: #f7f7fb;
+      --muted: #9898aa;
+      --purple: #a855f7;
+      --pink: #f52ba3;
+      --cyan: #45d7ff;
+      --max: 1220px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 15% 5%, rgba(168,85,247,.13), transparent 28rem),
+        radial-gradient(circle at 85% 35%, rgba(69,215,255,.07), transparent 30rem),
+        var(--bg);
+      color: var(--text);
+      font-family: "DM Sans", sans-serif;
+      min-height: 100vh;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    header {
+      height: 78px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7,7,10,.78);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .nav {
+      max-width: var(--max);
+      height: 100%;
+      margin: auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+    }
+
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg,var(--pink),var(--purple));
+      box-shadow: 0 0 30px rgba(168,85,247,.25);
+      font-family: "Space Grotesk",sans-serif;
+      font-size: 13px;
+    }
+
+    .brand span span {
+      color: var(--purple);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    nav a:hover {
+      color: white;
+    }
+
+    .login {
+      color: white;
+      padding: 10px 17px;
+      border: 1px solid rgba(168,85,247,.5);
+      border-radius: 10px;
+      transition: .2s ease;
+    }
+
+    .login:hover {
+      background: rgba(168,85,247,.1);
+      border-color: var(--purple);
+    }
+
+    main {
+      overflow: hidden;
+    }
+
+    .hero {
+      max-width: var(--max);
+      min-height: 660px;
+      margin: auto;
+      padding: 100px 24px 70px;
+      display: grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap: 70px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      color: var(--pink);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .19em;
+      margin: 0 0 22px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: "Space Grotesk",sans-serif;
+    }
+
+    h1 {
+      font-size: clamp(52px,6vw,86px);
+      line-height: .98;
+      letter-spacing: -.055em;
+      margin: 0;
+      max-width: 800px;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg,var(--pink),var(--purple));
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero-copy {
+      margin: 28px 0 34px;
+      max-width: 620px;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 17px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 22px;
+      border-radius: 11px;
+      font-size: 14px;
+      font-weight: 800;
+      transition: transform .2s ease, border-color .2s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+    }
+
+    .primary {
+      background: linear-gradient(100deg,var(--pink),var(--purple));
+      color: white;
+      box-shadow: 0 12px 35px rgba(168,85,247,.18);
+    }
+
+    .secondary {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.025);
+    }
+
+    .secondary:hover {
+      border-color: rgba(168,85,247,.5);
+    }
+
+    .hero-art {
+      position: relative;
+      min-height: 470px;
+      display: grid;
+      place-items: center;
+    }
+
+    .orb {
+      width: 390px;
+      height: 390px;
+      border-radius: 50%;
+      border: 1px solid rgba(168,85,247,.18);
+      position: absolute;
+      box-shadow:
+        0 0 100px rgba(168,85,247,.08),
+        inset 0 0 100px rgba(168,85,247,.04);
+    }
+
+    .orb:before {
+      content: "";
+      position: absolute;
+      inset: 52px;
+      border-radius: 50%;
+      border: 1px solid rgba(245,43,163,.17);
+    }
+
+    .community-card {
+      width: 280px;
+      height: 350px;
+      padding: 28px;
+      position: relative;
+      z-index: 2;
+      border-radius: 26px;
+      background:
+        linear-gradient(145deg,rgba(168,85,247,.15),transparent 45%),
+        #111119;
+      border: 1px solid rgba(255,255,255,.1);
+      box-shadow: 0 30px 80px rgba(0,0,0,.5);
+      transform: rotate(4deg);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .community-card small {
+      color: var(--muted);
+      letter-spacing: .18em;
+      font-weight: 800;
+    }
+
+    .spark {
+      font-size: 70px;
+      text-align: center;
+      background: linear-gradient(var(--pink),var(--purple));
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .community-card strong {
+      font-family: "Space Grotesk",sans-serif;
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .section {
+      max-width: var(--max);
+      margin: auto;
+      padding: 90px 24px;
+    }
+
+    .section-heading {
+      max-width: 700px;
+      margin-bottom: 42px;
+    }
+
+    .section h2 {
+      font-size: clamp(34px,4vw,52px);
+      letter-spacing: -.04em;
+      margin: 0 0 15px;
+    }
+
+    .section-heading > p:last-child {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .experiences {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 18px;
+    }
+
+    .experience {
+      min-height: 330px;
+      padding: 36px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 100% 0%,rgba(245,43,163,.10),transparent 22rem),
+        var(--panel);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .experience h3 {
+      font-size: 34px;
+      margin: 20px 0 12px;
+    }
+
+    .experience p {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 560px;
+    }
+
+    .tag {
+      display: inline-flex;
+      padding: 7px 10px;
+      border: 1px solid rgba(245,43,163,.3);
+      border-radius: 100px;
+      color: var(--pink);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+
+    .coming {
+      background:
+        radial-gradient(circle at 100% 0%,rgba(69,215,255,.08),transparent 22rem),
+        var(--panel);
+    }
+
+    .coming .tag {
+      color: var(--cyan);
+      border-color: rgba(69,215,255,.25);
+    }
+
+    .experience .button {
+      margin-top: 18px;
+    }
+
+    .communities {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 18px;
+    }
+
+    .creator {
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      transition: .2s ease;
+    }
+
+    .creator:hover {
+      transform: translateY(-3px);
+      border-color: rgba(168,85,247,.35);
+    }
+
+    .creator-logo {
+      width: 60px;
+      height: 60px;
+      flex: 0 0 60px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg,var(--pink),var(--purple));
+      font-weight: 800;
+    }
+
+    .creator h3 {
+      margin: 0 0 5px;
+      font-size: 20px;
+    }
+
+    .creator p {
+      color: var(--muted);
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .arrow {
+      margin-left: auto;
+      font-size: 22px;
+      color: var(--muted);
+    }
+
+    .creator.you .creator-logo {
+      background: linear-gradient(135deg,var(--purple),var(--cyan));
+    }
+
+    .creator.you {
+      opacity: .75;
+    }
+
+    .creator-section-note {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 16px;
+    }
+
+    .creator-cta {
+      margin: 70px auto 100px;
+      max-width: calc(var(--max) - 48px);
+      border: 1px solid rgba(168,85,247,.2);
+      border-radius: 24px;
+      padding: 70px 30px;
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 120%,rgba(168,85,247,.18),transparent 30rem),
+        var(--panel);
+    }
+
+    .creator-cta h2 {
+      font-size: clamp(36px,5vw,58px);
+      margin: 0 0 16px;
+      letter-spacing: -.045em;
+    }
+
+    .creator-cta p {
+      max-width: 620px;
+      margin: 0 auto 28px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+    }
+
+    .footer {
+      max-width: var(--max);
+      min-height: 110px;
+      margin: auto;
+      padding: 30px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer b {
+      color: white;
+      letter-spacing: .08em;
+    }
+
+    @media(max-width:850px) {
+      nav > a:not(.login) {
+        display: none;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        padding-top: 75px;
+        gap: 25px;
+      }
+
+      .hero-art {
+        min-height: 420px;
+      }
+
+      .experiences,
+      .communities {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media(max-width:520px) {
+      .brand span {
+        font-size: 13px;
+      }
+
+      .hero {
+        padding-top: 60px;
+      }
+
+      h1 {
+        font-size: 48px;
+      }
+
+      .hero-art {
+        transform: scale(.82);
+        margin: -30px 0;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .experience {
+        padding: 26px;
+      }
+
+      .footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="nav">
+
+    <a class="brand" href="/">
+      <div class="logo">AH</div>
+      <span>AFTER HOURS <span>COMMUNITY</span></span>
+    </a>
+
+    <nav>
+      <a href="#experiences">Experiences</a>
+      <a href="#communities">Communities</a>
+      <a class="login" href="/admin/">Creator Dashboard</a>
+    </nav>
+
+  </div>
+</header>
+
+
+<main>
+
+  <section class="hero">
+
+    <div>
+
+      <p class="eyebrow">
+        AFTER HOURS COMMUNITY
+      </p>
+
+      <h1>
+        Built for the <em>community.</em><br>
+        Powered by the stream.
+      </h1>
+
+      <p class="hero-copy">
+        Interactive games, collections and community experiences
+        made for streamers and the people who keep coming back.
+      </p>
+
+      <div class="actions">
+
+        <a class="button primary" href="#communities">
+          Explore Communities →
+        </a>
+
+        <a class="button secondary" href="/admin/">
+          Creator Dashboard
+        </a>
+
+      </div>
+
+    </div>
+
+
+    <div class="hero-art">
+
+      <div class="orb"></div>
+
+      <div class="community-card">
+
+        <small>AFTER HOURS</small>
+
+        <div class="spark">✦</div>
+
+        <strong>
+          PLAY.<br>
+          COLLECT.<br>
+          CONNECT.
+        </strong>
+
+        <small>COMMUNITY EXPERIENCES</small>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <section id="experiences" class="section">
+
+    <div class="section-heading">
+
+      <p class="eyebrow">
+        COMMUNITY EXPERIENCES
+      </p>
+
+      <h2>
+        More than just watching.
+      </h2>
+
+      <p>
+        After Hours projects give viewers something to collect,
+        compete over and come back for.
+      </p>
+
+    </div>
+
+
+    <div class="experiences">
+
+      <article class="experience">
+
+        <span class="tag">LIVE EXPERIENCE</span>
+
+        <h3>🍿 Snack Vault</h3>
+
+        <p>
+          Redeem Snack Pulls during a stream, discover snacks,
+          build your personal collection and climb your
+          community's leaderboard.
+        </p>
+
+        <a class="button primary" href="#communities">
+          Explore Snack Vault →
+        </a>
+
+      </article>
+
+
+      <article class="experience coming">
+
+        <span class="tag">MORE COMING</span>
+
+        <h3>Built to grow.</h3>
+
+        <p>
+          Snack Vault is the beginning. More community games,
+          stream integrations and interactive experiences can
+          live here as After Hours grows.
+        </p>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <section id="communities" class="section">
+
+    <div class="section-heading">
+
+      <p class="eyebrow">
+        COMMUNITIES
+      </p>
+
+      <h2>
+        Find your community.
+      </h2>
+
+      <p>
+        Each creator gets their own experience, collection,
+        leaderboard and style.
+      </p>
+
+    </div>
+
+
+    <div class="communities">
+
+      <a class="creator" href="/pretty-massacure/">
+
+        <div class="creator-logo">
+          PM
+        </div>
+
+        <div>
+          <h3>Pretty Massacure</h3>
+          <p>Snack Vault · Community Collection</p>
+        </div>
+
+        <span class="arrow">→</span>
+
+      </a>
+
+
+      <div class="creator you">
+
+        <div class="creator-logo">
+          UP
+        </div>
+
+        <div>
+          <h3>underscorepower</h3>
+          <p>Community page coming next</p>
+        </div>
+
+        <span class="arrow">✦</span>
+
+      </div>
+
+    </div>
+
+    <p class="creator-section-note">
+      More creator communities can be added without changing Pretty Massacure's Vault.
+    </p>
+
+  </section>
+
+
+  <section class="creator-cta">
+
+    <p class="eyebrow">
+      FOR CREATORS
+    </p>
+
+    <h2>
+      Your community.<br>
+      Your collection. Your style.
+    </h2>
+
+    <p>
+      Manage your Snack Vault, snacks, stream integration,
+      branding and community from one creator dashboard.
+    </p>
+
+    <a class="button primary" href="/admin/">
+      Open Creator Dashboard →
+    </a>
+
+  </section>
+
+</main>
+
+
+<footer>
+
+  <div class="footer">
+
+    <b>AFTER HOURS COMMUNITY</b>
+
+    <span>
+      Community experiences built for stream.
+    </span>
+
+  </div>
+
+</footer>
+
+</body>
+</html>
