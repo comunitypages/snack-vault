@@ -505,84 +505,155 @@
 
       <div class="panel">
 
+        <p class="eyebrow">YOUR CONNECTION</p>
+        <h3>Snack Vault API</h3>
 
-        <label>
-          Pull endpoint
-        </label>
+        <p>Connect your Twitch bot to Snack Vault. Your API key belongs only to this Vault.</p>
 
-
+        <label>Pull endpoint</label>
         <div class="copy">
-
-          <input
-            id="endpoint"
-            readonly
-          >
-
-          <button
-            type="button"
-            data-copy="endpoint"
-          >
-            Copy
-          </button>
-
+          <input id="endpoint" readonly>
+          <button type="button" data-copy="endpoint">Copy</button>
         </div>
 
-
-
-        <label>
-          Bot API key
-        </label>
-
-
+        <label>Bot API key</label>
         <div class="copy">
-
-          <input
-            id="apiKey"
-            value="No plaintext key stored"
-            readonly
-          >
-
-
-          <button
-            id="generateKey"
-            type="button"
-          >
-            Generate / Regenerate
-          </button>
-
+          <input id="apiKey" value="No plaintext key stored" readonly>
+          <button id="generateKey" type="button">Generate / Regenerate</button>
         </div>
 
-
-
-        <p
-          id="keyWarning"
-          class="warning hidden"
-        >
-          Copy this key now. It is shown only once.
-          Put it in Mix It Up or Firebot.
-          Never put it in your website files.
+        <p id="keyWarning" class="warning hidden">
+          Copy this key now. It is shown only once. Keep it private and never put it in your website files.
         </p>
 
+        <hr>
 
+        <p class="eyebrow">CHOOSE YOUR BOT</p>
+        <h3>Setup Instructions</h3>
 
-        <h3>
-          Request
-        </h3>
-
-
-        <pre>POST [endpoint]
-Content-Type: application/json
+        <details open>
+          <summary><strong>Mix It Up</strong></summary>
+          <div style="padding:16px 0;">
+            <p>Add a Web Request action to your Channel Point reward.</p>
+            <p><strong>Method</strong></p><pre>POST</pre>
+            <p><strong>URL</strong></p><pre>Use the Pull Endpoint shown above.</pre>
+            <p><strong>Headers</strong></p>
+            <pre>Content-Type: application/json
 x-snack-api-key: YOUR_KEY
+x-response-format: text</pre>
+            <p><strong>Body</strong></p>
+            <pre>{
+  "username": "$username",
+  "display_name": "$username"
+}</pre>
+            <p><strong>Response Processing Type</strong></p><pre>Plain Text</pre>
+            <p>Then add a Chat Message action containing:</p><pre>$webrequestresult</pre>
+          </div>
+        </details>
 
-{"username":"REDEEMING_VIEWER"}</pre>
+        <details>
+          <summary><strong>Streamer.bot</strong></summary>
+          <div style="padding:16px 0;">
+            <p>Create an action and add <strong>Execute C# Code</strong>. Paste the code below and replace <code>YOUR_SNACK_VAULT_API_KEY</code> with the Bot API key shown above.</p>
+            <pre>using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 
+public class CPHInline
+{
+    public bool Execute()
+    {
+        return ExecuteAsync().GetAwaiter().GetResult();
+    }
 
-        <p>
-          Your bot prints the response field
-          <code>message</code>.
-          The public website never performs snack pulls.
-        </p>
+    private async Task&lt;bool&gt; ExecuteAsync()
+    {
+        if (!CPH.TryGetArg("userName", out string username) ||
+            string.IsNullOrWhiteSpace(username))
+        {
+            CPH.LogError("Snack Vault: Could not find userName.");
+            return false;
+        }
 
+        string url = "https://inftkwxwqkyhzrqxmiey.supabase.co/functions/v1/pull";
+        string apiKey = "YOUR_SNACK_VAULT_API_KEY";
+
+        string safeUsername = username
+            .Replace("\\", "\\\\")
+            .Replace("\"", "\\\"");
+
+        string json =
+            "{\"username\":\"" + safeUsername +
+            "\",\"display_name\":\"" + safeUsername + "\"}";
+
+        try
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("x-snack-api-key", apiKey);
+                client.DefaultRequestHeaders.Add("x-response-format", "text");
+
+                using (StringContent content = new StringContent(
+                    json, Encoding.UTF8, "application/json"))
+                {
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        CPH.LogError("Snack Vault API Error (" +
+                            (int)response.StatusCode + "): " + result);
+                        return false;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(result))
+                    {
+                        CPH.LogError("Snack Vault returned an empty response.");
+                        return false;
+                    }
+
+                    CPH.SendMessage(result);
+                    return true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            CPH.LogError("Snack Vault Exception: " + ex.Message);
+            return false;
+        }
+    }
+}</pre>
+            <p>Attach this action to the Twitch Channel Point reward. Snack Vault sends the pull result directly to Twitch chat.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><strong>Firebot</strong></summary>
+          <div style="padding:16px 0;">
+            <p>Add an <strong>HTTP Request</strong> effect to your reward.</p>
+            <p><strong>Method</strong></p><pre>POST</pre>
+            <p><strong>URL</strong></p><pre>Use the Pull Endpoint shown above.</pre>
+            <p><strong>Headers</strong></p>
+            <pre>Content-Type: application/json
+x-snack-api-key: YOUR_KEY
+x-response-format: text</pre>
+            <p><strong>Body</strong></p>
+            <pre>{
+  "username": "$username",
+  "display_name": "$username"
+}</pre>
+            <p>After the HTTP Request, add a <strong>Chat</strong> effect.</p>
+            <p><strong>Message To Send</strong></p><pre>$effectOutput[httpResponse]</pre>
+            <p>Keep the effects in this order:</p><pre>1. HTTP Request
+2. Chat</pre>
+            <p>Run Mode should be <strong>Sequential (All)</strong>.</p>
+          </div>
+        </details>
+
+        <hr>
+        <p>🔒 Snack pulls can only be performed through your private Bot API key. Your public Snack Vault page cannot perform pulls.</p>
 
       </div>
 
