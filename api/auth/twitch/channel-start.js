@@ -15,10 +15,12 @@ export default function handler(req, res) {
 
   const state = randomBytes(32).toString("hex");
 
-  res.setHeader(
-    "Set-Cookie",
-    `twitch_oauth_state=${state}; HttpOnly; Secure; SameSite=Lax; Path=/api/auth/twitch; Max-Age=600`
-  );
+  res.setHeader("Cache-Control", "no-store");
+
+  res.setHeader("Set-Cookie", [
+    `twitch_oauth_state=${state}; HttpOnly; Secure; SameSite=Lax; Path=/api/auth/twitch; Max-Age=600`,
+    "twitch_oauth_flow=channel; HttpOnly; Secure; SameSite=Lax; Path=/api/auth/twitch; Max-Age=600"
+  ]);
 
   const url = new URL("https://id.twitch.tv/oauth2/authorize");
 
@@ -31,4 +33,3 @@ export default function handler(req, res) {
 
   return res.redirect(302, url.toString());
 }
-
