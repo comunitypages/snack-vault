@@ -5,12 +5,14 @@ import {
   timingSafeEqual
 } from "node:crypto";
 
-const BOT_LOGIN = "afterhoursai";
-
 function safeEqual(a, b) {
   const x = Buffer.from(a || "");
   const y = Buffer.from(b || "");
-  return x.length === y.length && timingSafeEqual(x, y);
+
+  return (
+    x.length === y.length &&
+    timingSafeEqual(x, y)
+  );
 }
 
 function encrypt(value) {
@@ -20,7 +22,7 @@ function encrypt(value) {
   );
 
   if (key.length !== 32) {
-    throw new Error("Invalid token encryption key");
+    throw new Error("Invalid encryption key");
   }
 
   const iv = randomBytes(12);
@@ -39,6 +41,23 @@ function encrypt(value) {
   ].join(".");
 }
 
+function getCookies(req) {
+  const cookies = {};
+
+  for (const part of (req.headers.cookie || "").split(";")) {
+    const index = part.indexOf("=");
+
+    if (index === -1) continue;
+
+    const name = part.slice(0, index).trim();
+    const value = part.slice(index + 1).trim();
+
+    cookies[name] = value;
+  }
+
+  return cookies;
+}
+
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
 
@@ -46,37 +65,43 @@ export default async function handler(req, res) {
     return res.status(405).send("Method not allowed");
   }
 
-  const cookies = Object.fromEntries(
-    (req.headers.cookie || "")
-      .split(";")
-      .map(part => {
-        const i = part.indexOf("=");
-        return i < 0
-          ? []
-          : [part.slice(0, i).trim(), part.slice(i + 1)];
-      })
-      .filter(pair => pair.length === 2)
-  );
+  const cookies = getCookies(req);
 
-  const { code, state, error } = req.query;
+  const state = req.query.state;
+  const code = req.query.code;
+  const error = req.query.error;
 
-  res.setHeader(
-    "Set-Cookie",
-    "twitch_oauth_state=; HttpOnly; Secure; SameSite=Lax; Path=/api/auth/twitch; Max-Age=0"
-  );
+  const flow =
+    cookies.twitch_oauth_flow === "channel"
+      ? "channel"
+      : "bot";
+
+  res.setHeader("Set-Cookie", [
+    "twitch_oauth_state=; HttpOnly; Secure; SameSite=Lax; Path=/api/auth/twitch; Max-Age=0",
+    "twitch_oauth_flow=; HttpOnly; Secure; SameSite=Lax; Path=/api/auth/twitch; Max-Age=0"
+  ]);
 
   if (error) {
-    return res.status(400).send("Twitch authorization cancelled.");
+    return res.status(400).send(
+      "Twitch authorization was cancelled or denied."
+    );
   }
 
   if (
-    typeof code !== "string" ||
     typeof state !== "string" ||
+    typeof code !== "string" ||
     !cookies.twitch_oauth_state ||
     !safeEqual(state, cookies.twitch_oauth_state)
   ) {
-    return res.status(403).send("Invalid or expired login request.");
+    return res.status(403).send(
+      "Invalid or expired login request."
+    );
   }
+
+  const expectedLogin =
+    flow === "channel"
+      ? "underscorepower"
+      : "afterhoursai";
 
   const {
     TWITCH_CLIENT_ID,
@@ -95,16 +120,20 @@ export default async function handler(req, res) {
     !SUPABASE_SERVICE_ROLE_KEY ||
     !TWITCH_TOKEN_ENCRYPTION_KEY
   ) {
-    return res.status(500).send("Server configuration incomplete.");
+    return res.status(500).send(
+      "Server configuration incomplete."
+    );
   }
 
   try {
+    // Exchange authorization code for Twitch tokens.
     const tokenResponse = await fetch(
       "https://id.twitch.tv/oauth2/token",
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
+          "Content-Type":
+            "application/x-www-form-urlencoded"
         },
         body: new URLSearchParams({
           client_id: TWITCH_CLIENT_ID,
@@ -117,15 +146,24 @@ export default async function handler(req, res) {
     );
 
     if (!tokenResponse.ok) {
-      return res.status(502).send("Twitch authorization failed.");
+      return res.status(502).send(
+        "Twitch token exchange failed."
+      );
     }
 
     const tokens = await tokenResponse.json();
 
-    if (!tokens.access_token || !tokens.refresh_token) {
-      return res.status(502).send("Missing Twitch tokens.");
+    if (
+      !tokens.access_token ||
+      !tokens.refresh_token ||
+      !Number.isFinite(tokens.expires_in)
+    ) {
+      return res.status(502).send(
+        "Twitch returned incomplete authorization data."
+      );
     }
 
+    // Verify which Twitch account authorized.
     const userResponse = await fetch(
       "https://api.twitch.tv/helix/users",
       {
@@ -137,38 +175,79 @@ export default async function handler(req, res) {
     );
 
     if (!userResponse.ok) {
-      return res.status(502).send("Could not verify Twitch account.");
+      return res.status(502).send(
+        "Could not verify Twitch account."
+      );
     }
 
     const userData = await userResponse.json();
     const account = userData.data?.[0];
 
-    if (account?.login?.toLowerCase() !== BOT_LOGIN) {
+    if (
+      account?.login?.toLowerCase() !== expectedLogin
+    ) {
       return res.status(403).send(
-        "Please sign in with the AfterHoursAI Twitch account."
+        `Please authorize using the ${expectedLogin} Twitch account.`
       );
     }
+
+    // Confirm Twitch granted the required permission.
+    const requiredScopes =
+      flow === "channel"
+        ? ["channel:bot"]
+        : [
+            "user:read:chat",
+            "user:write:chat",
+            "user:bot"
+          ];
+
+    if (
+      !requiredScopes.every(
+        scope => tokens.scope?.includes(scope)
+      )
+    ) {
+      return res.status(403).send(
+        "Required Twitch permissions were not granted."
+      );
+    }
+
+    // Encrypt before saving anything to the database.
+    const encryptedAccessToken = encrypt(
+      tokens.access_token
+    );
+
+    const encryptedRefreshToken = encrypt(
+      tokens.refresh_token
+    );
 
     const expiresAt = new Date(
       Date.now() + tokens.expires_in * 1000
     ).toISOString();
 
+    const recordId =
+      flow === "channel"
+        ? "underscorepower"
+        : "afterhoursai";
+
+    // Store tokens using the private server-side key.
     const storageResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/private_twitch_bot_tokens?on_conflict=id`,
       {
         method: "POST",
         headers: {
           apikey: SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          Authorization:
+            `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
           "Content-Type": "application/json",
-          Prefer: "resolution=merge-duplicates,return=minimal"
+          Prefer:
+            "resolution=merge-duplicates,return=minimal"
         },
         body: JSON.stringify({
-          id: "afterhoursai",
+          id: recordId,
           twitch_user_id: account.id,
           twitch_login: account.login,
-          access_token: encrypt(tokens.access_token),
-          refresh_token: encrypt(tokens.refresh_token),
+          access_token: encryptedAccessToken,
+          refresh_token: encryptedRefreshToken,
           expires_at: expiresAt,
           updated_at: new Date().toISOString()
         })
@@ -177,19 +256,26 @@ export default async function handler(req, res) {
 
     if (!storageResponse.ok) {
       console.error(
-        "Supabase token storage failed:",
+        "Supabase storage failed:",
         storageResponse.status
       );
+
       return res.status(502).send(
-        "Twitch connected, but secure storage failed."
+        "Twitch authorized, but secure storage failed."
       );
     }
 
     return res.status(200).send(
-      "AfterHoursAI connected successfully! You can close this page."
+      `${expectedLogin} connected successfully! You can close this page.`
     );
-  } catch (err) {
-    console.error("Twitch callback error:", err.message);
-    return res.status(500).send("Bot connection failed.");
+  } catch (error) {
+    console.error(
+      "Twitch callback failed:",
+      error.message
+    );
+
+    return res.status(500).send(
+      "Twitch connection failed."
+    );
   }
 }
