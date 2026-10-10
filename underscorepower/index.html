@@ -1,1 +1,179 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>underscorepower | Snack Vault</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #351258, #10091c 65%);
+      color: white;
+      min-height: 100vh;
+    }
+    header {
+      padding: 20px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ffffff20;
+    }
+    .logo {
+      font-size: 23px;
+      font-weight: 900;
+      color: #e69cff;
+    }
+    .hero {
+      text-align: center;
+      padding: 55px 20px 25px;
+    }
+    h1 {
+      font-size: clamp(32px, 6vw, 58px);
+      margin: 10px 0;
+    }
+    .purple { color: #d68cff; }
+    p { color: #bcb0ce; line-height: 1.6; }
+    .tag {
+      display: inline-block;
+      background: #a855f722;
+      border: 1px solid #a855f777;
+      border-radius: 50px;
+      padding: 9px 17px;
+      color: #e9c5ff;
+    }
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 20px;
+    }
+    .panel {
+      background: #1d122e;
+      border: 1px solid #8b5cf650;
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 15px 60px #0005;
+      margin-bottom: 25px;
+    }
+    .preview {
+      width: 100%;
+      height: 580px;
+      border: none;
+      background: #10091c;
+      border-radius: 15px;
+    }
+    .buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 25px 0;
+    }
+    .btn {
+      background: #9333ea;
+      color: white;
+      text-decoration: none;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover { background: #a855f7; }
+    .secondary { background: #342448; }
+    .secondary:hover { background: #493262; }
+    footer {
+      text-align: center;
+      color: #81728f;
+      padding: 35px;
+    }
+    @media (max-width: 650px) {
+      .preview { height: 400px; }
+      header { padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">SNACK VAULT</div>
+    <a class="btn secondary" href="/">Home</a>
+  </header>
+
+  <section class="hero">
+    <div class="tag">AFTER HOURS COMMUNITY</div>
+    <h1>underscore<span class="purple">power</span></h1>
+    <p>Welcome to my personal Snack Vault!</p>
+    <p>9 mystery snacks. 1 winning drop. What will you pull?</p>
+
+    <div class="buttons">
+      <a class="btn" href="https://www.twitch.tv/underscorepower"
+         target="_blank" rel="noopener noreferrer">
+        Watch on Twitch
+      </a>
+      <a class="btn secondary" href="#machine">
+        View Vending Machine
+      </a>
+    </div>
+  </section>
+
+  <main class="container">
+    <div class="panel" id="machine">
+      <h2>🍫 Mystery Vending Machine</h2>
+      <p>
+        Nine random snacks appear in the machine.
+        One is selected and drops into the tray!
+      </p>
+
+      <iframe
+        id="vending"
+        class="preview"
+        title="Snack Vault Vending Machine"
+        src="/overlay/vending-machine.html?channel=underscorepower&amp;demo=1">
+      </iframe>
+
+      <div class="buttons">
+        <button class="btn" onclick="replayMachine()">
+          🎰 Test Random Pull
+        </button>
+        <a class="btn secondary"
+           href="/overlay/vending-machine.html?channel=underscorepower&amp;demo=1"
+           target="_blank">
+          Open Full Screen
+        </a>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>💜 Join the Community</h2>
+      <p>
+        Hang out with the Undies and catch the next stream!
+      </p>
+      <div class="buttons">
+        <a class="btn" href="https://discord.gg/6QV3upMvTw"
+           target="_blank" rel="noopener noreferrer">
+          Join Discord
+        </a>
+        <a class="btn secondary"
+           href="https://www.twitch.tv/underscorepower"
+           target="_blank" rel="noopener noreferrer">
+          Twitch Channel
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer>Snack Vault × After Hours</footer>
+
+  <script>
+    function replayMachine() {
+      const frame = document.getElementById("vending");
+      frame.src =
+        "/overlay/vending-machine.html?channel=underscorepower&demo=1&t="
+        + Date.now();
+    }
+  </script>
+</body>
+</html>
+
