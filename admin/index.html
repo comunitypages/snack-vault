@@ -9,6 +9,10 @@
 
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/admin.css">
+<style>
+#ownerCatalog{margin:24px 0 30px;padding:22px;border:1px solid #75439b;border-radius:20px;background:linear-gradient(145deg,#261432,#130e20);color:#fdf5ff}
+#ownerCatalog *{box-sizing:border-box}#ownerCatalog .oc-head{display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap}#ownerCatalog h3{margin:5px 0 7px;font-size:25px}#ownerCatalog p{color:#c4b4d3;font-size:13px;line-height:1.6;margin:5px 0 12px}#ownerCatalog .oc-kpis{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}#ownerCatalog .oc-kpis span{background:#100a1d;border:1px solid #5c3877;border-radius:10px;padding:9px 13px;font-size:13px}#ownerCatalog .oc-kpis strong{color:#ff9bdc}#ownerCatalog .oc-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}#ownerCatalog input,#ownerCatalog select{background:#130d1e;color:white;border:1px solid #674281;border-radius:10px;padding:11px;min-width:0}#ownerCatalog input{flex:1;min-width:180px}#ownerCatalog button{border:1px solid #b96ee7;border-radius:10px;padding:11px 15px;background:#51246c;color:white;font-weight:700;cursor:pointer}#ownerCatalog button:disabled{opacity:.45;cursor:wait}#ownerCatalog .oc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:12px;margin-top:16px;max-height:620px;overflow:auto}#ownerCatalog .oc-item{border:1px solid #4d3265;border-radius:13px;background:#1a1128;overflow:hidden}#ownerCatalog .oc-photo{height:125px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,#62317955,transparent 72%);padding:12px}#ownerCatalog .oc-photo img{width:100%;height:100%;object-fit:contain}#ownerCatalog .oc-info{padding:10px}#ownerCatalog .oc-name{font-size:12px;font-weight:750;min-height:35px}#ownerCatalog .oc-meta{display:flex;justify-content:space-between;align-items:center;gap:4px;margin-top:8px;font-size:10px;text-transform:uppercase;color:#d6a8fa}#ownerCatalog .oc-in-db{color:#73e7a5}#ownerCatalog .oc-missing{color:#ffca84}#ownerCatalog #ocStatus{font-size:12px;color:#f4c4ff;min-height:18px;margin-top:10px}
+</style>
 </head>
 
 <body>
@@ -403,6 +407,15 @@
 
       </div>
 
+
+
+      <!-- Owner-only reference catalog; DB writes are separately protected by Supabase RLS. -->
+      <div id="ownerCatalog" class="hidden" aria-label="Owner snack catalog">
+        <div class="oc-head"><div><p class="eyebrow">UNDERSCOREPOWER • PRIVATE CATALOG</p><h3>100-Snack Collection</h3><p>Compare the complete catalog against your live database. Only database snacks participate in pulls.</p></div><button type="button" id="ocImport">Import Missing Snacks</button></div>
+        <div class="oc-kpis"><span><strong id="ocTotal">100</strong> catalog snacks</span><span><strong id="ocAdded">0</strong> in your Vault</span><span><strong id="ocMissing">100</strong> missing</span></div>
+        <div class="oc-actions"><input type="search" id="ocSearch" placeholder="Search 100 snacks..." aria-label="Search reference catalog"><select id="ocRarity" aria-label="Filter by rarity"><option value="all">All rarities</option><option value="common">Common</option><option value="uncommon">Uncommon</option><option value="rare">Rare</option><option value="epic">Epic</option><option value="legendary">Legendary</option><option value="mythic">Mythic</option></select></div>
+        <div id="ocStatus" role="status"></div><div class="oc-grid" id="ocGrid"></div>
+      </div>
 
       <div class="table">
 
@@ -961,6 +974,7 @@ x-response-format: text</pre>
             Common
           </option>
 
+          <option>Uncommon</option>
           <option>
             Rare
           </option>
@@ -972,6 +986,7 @@ x-response-format: text</pre>
           <option>
             Legendary
           </option>
+          <option>Mythic</option>
 
         </select>
 
