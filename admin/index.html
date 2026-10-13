@@ -504,6 +504,40 @@
 
       <div class="panel">
 
+        <p class="eyebrow">AFTERHOURSAI</p>
+        <h3>Your cloud bot</h3>
+        <p id="cloudBotStatus" role="status">Loading connection…</p>
+        <div class="cloud-actions">
+          <button type="button" id="connectTwitch">Connect Twitch</button>
+          <button type="button" id="toggleBot" disabled>Enable Bot</button>
+          <button type="button" id="testBot" disabled>Send Test Message</button>
+          <button type="button" id="refreshBot">Refresh</button>
+        </div>
+        <p id="cloudBotMessage" role="status" aria-live="polite"></p>
+        <p id="cloudBotTotals"></p>
+        <p class="muted">Connect your streaming channel. AfterHoursAI remains the shared bot. Disabling stops new pulls and chat here; pause the reward in Twitch too so viewers cannot spend points while it is off.</p>
+        <h3>Channel Point snack bags</h3>
+        <p id="rewardStatus">Connect Twitch to configure a reward.</p>
+        <div class="cloud-actions">
+          <button type="button" id="loadRewards">Load my rewards</button>
+          <select id="rewardSelect" aria-label="Existing Twitch reward"><option value="">Choose a reward</option></select>
+          <button type="button" id="selectReward">Use selected reward</button>
+        </div>
+        <div class="cloud-actions">
+          <label>New reward name <input id="rewardTitle" maxlength="45" value="Open a Snack Bag"></label>
+          <label>Point cost <input id="rewardCost" type="number" min="1" step="1" value="100"></label>
+          <button type="button" id="createReward">Create and connect reward</button>
+          <button type="button" id="retrySubscription">Check / repair EventSub</button>
+        </div>
+        <p>Rewards created here can be fulfilled or refunded automatically. Rewards made elsewhere require manual fulfillment/refunds in Twitch. Turn off any old bot action for the selected reward to avoid two pulls per redemption.</p>
+        <div id="deliveryHistory"></div>
+        <hr>
+        <h3>OBS overlay URLs</h3>
+        <p>Copy a URL into an OBS Browser Source. Suggested canvas: 1920 × 1080. The collection overlay shows the latest puller's collection.</p>
+        <div id="overlayLinks"></div>
+        <hr>
+        <details><summary><strong>Existing external-bot integration</strong></summary>
+
         <p class="eyebrow">YOUR CONNECTION</p>
         <h3>Snack Vault API</h3>
 
@@ -652,7 +686,8 @@ x-response-format: text</pre>
         </details>
 
         <hr>
-        <p>🔒 Snack pulls can only be performed through your private Bot API key. Your public Snack Vault page cannot perform pulls.</p>
+        <p>🔒 External bot pulls use your private per-vault API key. Cloud redemptions are verified on the server.</p>
+        </details>
 
       </div>
 
