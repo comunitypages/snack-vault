@@ -1,4 +1,3 @@
-
 {
   "cleanUrls": true,
   "trailingSlash": false,
@@ -14,5 +13,13 @@
       "source": "/:slug",
       "destination": "/creator?slug=:slug"
     }
-  ]
+  ],
+  "functions": {
+    "api/twitch/eventsub.js": {
+      "maxDuration": 60
+    },
+    "api/bot/rewards.js": {
+      "maxDuration": 60
+    }
+  }
 }
