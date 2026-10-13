@@ -1,19 +1,23 @@
 import { owner,db,fail,report } from '../../lib/server.js';
 function validate(body) {
   const name=typeof body?.command_name==='string'?body.command_name.trim().replace(/^!/,'').toLowerCase():'';
+  const commandType=body?.command_type==='pull'?'pull':'response';
   const response=typeof body?.response==='string'?body.response.trim():'';
   const cooldown=Number(body?.cooldown_seconds);
   if(!/^[a-z0-9_]{1,24}$/.test(name)) throw fail(400,'Command name must be 1–24 letters, numbers, or underscores.');
-  if(!response||response.length>450||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(response)) throw fail(400,'Response must be 1–450 characters.');
+  if(commandType==='response'&&(!response||response.length>450||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(response))) throw fail(400,'Response must be 1–450 characters.');
   if(!Number.isInteger(cooldown)||cooldown<1||cooldown>3600) throw fail(400,'Cooldown must be 1–3600 seconds.');
-  return {command_name:name,response,cooldown_seconds:cooldown};
+  return {command_name:name,command_type:commandType,response:commandType==='pull'?'Pull result is announced automatically.':response,cooldown_seconds:cooldown};
 }
 export default async function handler(req,res) {
   res.setHeader('Cache-Control','no-store');res.setHeader('Allow','GET, POST, PUT, DELETE');
   if(!['GET','POST','PUT','DELETE'].includes(req.method)) return res.status(405).json({error:'Use GET, POST, PUT, or DELETE.'});
   try {
     const creator=await owner(req);
-    if(req.method==='GET') return res.json({commands:await db(`sv_commands?creator_id=eq.${creator.id}&select=id,command_name,response,enabled,cooldown_seconds,created_at&order=command_name`)});
+    if(req.method==='GET') {
+      await db('rpc/sv_ensure_snack_command',{method:'POST',body:{p_creator:creator.id}});
+      return res.json({commands:await db(`sv_commands?creator_id=eq.${creator.id}&select=id,command_name,command_type,response,enabled,cooldown_seconds,created_at&order=command_name`)});
+    }
     if(req.method==='POST') {
       const data=validate(req.body);
       const rows=await db('sv_commands',{method:'POST',body:{creator_id:creator.id,...data,enabled:true},prefer:'return=representation'});

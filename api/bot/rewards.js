@@ -43,15 +43,21 @@ export default async function handler(req,res) {
     if(req.method==='GET') {
       const all=await channelAPI(conn,path), managed=await channelAPI(conn,path+'&only_manageable_rewards=true');
       const ids=new Set(managed.data.map(r=>r.id));
-      return res.json({rewards:all.data.map(r=>({id:r.id,title:r.title,cost:r.cost,managed:ids.has(r.id)}))});
+      return res.json({rewards:all.data.map(r=>({id:r.id,title:r.title,cost:r.cost,managed:ids.has(r.id)})),viewer_cooldown_seconds:conn.redemption_user_cooldown_seconds??1});
     }
     const action=req.body?.action;
     if(action==='subscribe') { const s=await subscribe(conn);return res.json({success:true,status:s.status,chat_status:s.chat_status}); }
+    if(action==='cooldown') {
+      const seconds=req.body?.viewer_cooldown_seconds;
+      if(!Number.isInteger(seconds)||seconds<1||seconds>3600) throw fail(400,'Per-viewer cooldown must be a whole number from 1 to 3600 seconds.');
+      await patchConnection(c.id,{redemption_user_cooldown_seconds:seconds});
+      return res.json({success:true,viewer_cooldown_seconds:seconds});
+    }
     let reward,managed;
     if(action==='create') {
       const title=req.body.title,cost=req.body.cost;
       if(typeof title!=='string'||!title.trim()||title.length>45||!Number.isSafeInteger(cost)||cost<1||cost>1000000000) throw fail(400,'Use a title of 1–45 characters and a whole-number cost of at least 1.');
-      const d=await channelAPI(conn,path,{method:'POST',body:{title:title.trim(),cost,prompt:'Open a Snack Vault bag!',is_user_input_required:false,should_redemptions_skip_request_queue:false}});
+      const d=await channelAPI(conn,path,{method:'POST',body:{title:title.trim(),cost,prompt:'Open a Snack Vault bag!',is_user_input_required:false,is_global_cooldown_enabled:false,should_redemptions_skip_request_queue:false}});
       reward=d.data[0];managed=true;
     } else if(action==='select') {
       const id=req.body.reward_id;
@@ -59,6 +65,7 @@ export default async function handler(req,res) {
       reward=(await channelAPI(conn,path+'&id='+encodeURIComponent(id))).data?.[0];
       if(!reward) throw fail(404,'That reward does not belong to this channel.');
       managed=(await channelAPI(conn,path+'&only_manageable_rewards=true')).data.some(r=>r.id===id);
+      if(managed) await channelAPI(conn,path+'&id='+encodeURIComponent(id),{method:'PATCH',body:{is_global_cooldown_enabled:false}});
     } else throw fail(400,'Unknown reward action.');
     await patchConnection(c.id,{reward_id:reward.id,reward_managed:managed});
     // Save the reward even if subscription creation fails; the dashboard provides a retry button.

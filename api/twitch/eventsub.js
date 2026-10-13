@@ -13,6 +13,14 @@ export function verify(headers,raw,now=Date.now()) {
   return equal(expected,signature);
 }
 function safeText(s,max=80) { return String(s||'').replace(/[\r\n\u0000-\u001f]/g,' ').trim().slice(0,max); }
+function fillUserTokens(template,values) {
+  let result=String(template||'');
+  for(const [key,value] of Object.entries(values)) {
+    const safe=safeText(value,60);
+    for(const token of [`{${key}}`,`%${key}%`,`$(${key})`,`$${key}%`,`$${key}`]) result=result.split(token).join(safe);
+  }
+  return safeText(result,450);
+}
 export async function processChatEvent(subscription,event) {
   if(!event?.broadcaster_user_id||!event?.chatter_user_login||!event?.message?.text) return;
   if(event.chatter_user_login.toLowerCase()==='afterhoursai') return;
@@ -23,10 +31,13 @@ export async function processChatEvent(subscription,event) {
   if(matches.length!==1) return;
   const claimed=await db('rpc/sv_claim_command',{method:'POST',body:{p_creator:matches[0].creator_id,p_command:command.slice(1).toLowerCase()}});
   if(!claimed||claimed.status!=='matched') return;
-  const output=safeText(claimed.response,450)
-    .replaceAll('{user}',safeText(event.chatter_user_name||event.chatter_user_login,60))
-    .replaceAll('{channel}',safeText(event.broadcaster_user_name||event.broadcaster_user_login,60))
-    .replaceAll('{command}',`!${claimed.command}`);
+  if(claimed.command_type==='pull') {
+    const pull=await db('rpc/do_pull',{method:'POST',body:{p_creator_id:matches[0].creator_id,p_username:event.chatter_user_login}});
+    const message=pull?.success?pull.message:pull?.error==='no_eligible_snacks'?'No snacks are available to pull right now.':'The snack pull could not be completed. Try again soon.';
+    await sendChat({creator_id:matches[0].creator_id,twitch_user_id:event.broadcaster_user_id,enabled:true},safeText(message,450));
+    return;
+  }
+  const output=fillUserTokens(claimed.response,{user:event.chatter_user_name||event.chatter_user_login,channel:event.broadcaster_user_name||event.broadcaster_user_login,command:`!${claimed.command}`});
   if(output) await sendChat({creator_id:matches[0].creator_id,twitch_user_id:event.broadcaster_user_id,enabled:true},output);
 }
 export default async function handler(req,res) {

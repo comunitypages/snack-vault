@@ -4,9 +4,10 @@ import { createHmac } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { encrypt,decrypt,owner } from '../lib/server.js';
 import dashboard from '../api/bot/dashboard.js';
+import rewards from '../api/bot/rewards.js';
 import channelStart from '../api/auth/twitch/channel-start.js';
 import { finishCreatorOAuth } from '../lib/creator-oauth.js';
-import webhook,{verify} from '../api/twitch/eventsub.js';
+import webhook,{verify,processChatEvent} from '../api/twitch/eventsub.js';
 process.env.SUPABASE_URL='https://database.test';
 process.env.SUPABASE_SERVICE_ROLE_KEY='test-server-only-key';
 process.env.TWITCH_TOKEN_ENCRYPTION_KEY=Buffer.alloc(32,7).toString('base64');
@@ -60,6 +61,43 @@ test('test messages use the connected second channel and the existing AfterHours
 test('atomic cooldown prevents another test chat request',async()=>{
  global.fetch=async u=>u.includes('rpc/sv_claim_test')?response(false):baseFetch(u);
  const r=res();await dashboard(request({action:'test'}),r);assert.equal(r.statusCode,429);
+});
+test('creator can save a one-second per-viewer redemption cooldown',async()=>{
+ let patched;
+ global.fetch=async(u,o)=>{
+  if(o?.method==='PATCH'&&u.includes('/creator_twitch_bots?creator_id=')){patched=JSON.parse(o.body);return new Response(null,{status:204});}
+  return baseFetch(u);
+ };
+ const r=res();await rewards(request({action:'cooldown',viewer_cooldown_seconds:1}),r);
+ assert.equal(r.statusCode,200);assert.equal(r.body.viewer_cooldown_seconds,1);assert.deepEqual(patched,{redemption_user_cooldown_seconds:1});
+ const invalid=res();await rewards(request({action:'cooldown',viewer_cooldown_seconds:0}),invalid);assert.equal(invalid.statusCode,400);
+});
+test('!snack command pulls one snack and announces the database result',async()=>{
+ let chat;
+ global.fetch=async(u,o)=>{
+  if(u.includes('/creator_twitch_bots?'))return response([{creator_id:creatorId}]);
+  if(u.includes('/rpc/sv_claim_command'))return response({status:'matched',command:'snack',command_type:'pull'});
+  if(u.includes('/rpc/do_pull'))return response({success:true,message:'Viewer pulled Chips! NEW snack discovered!'});
+  if(u.includes('/private_twitch_bot_tokens?'))return response([{twitch_user_id:'12345',twitch_login:'afterhoursai'}]);
+  if(u==='https://id.twitch.tv/oauth2/token')return response({access_token:'app-token',expires_in:3600});
+  if(u.endsWith('/chat/messages')){chat=JSON.parse(o.body);return response({data:[{is_sent:true,message_id:'chat-1'}]});}
+  throw Error('Unexpected chat-command fetch: '+u);
+ };
+ await processChatEvent({}, {broadcaster_user_id:'67890',broadcaster_user_login:'secondstreamer',chatter_user_id:'777',chatter_user_login:'viewer',chatter_user_name:'Viewer',message_type:'text',message:{text:'!snack'}});
+ assert.equal(chat.broadcaster_id,'67890');assert.equal(chat.sender_id,'12345');assert.equal(chat.message,'Viewer pulled Chips! NEW snack discovered!');
+});
+test('custom chat replies support percent, Twitch-style and dollar placeholders',async()=>{
+ let chat;
+ global.fetch=async(u,o)=>{
+  if(u.includes('/creator_twitch_bots?'))return response([{creator_id:creatorId}]);
+  if(u.includes('/rpc/sv_claim_command'))return response({status:'matched',command:'hello',command_type:'response',response:'Hi %user%! Welcome to $(channel); use $command%.'});
+  if(u.includes('/private_twitch_bot_tokens?'))return response([{twitch_user_id:'12345',twitch_login:'afterhoursai'}]);
+  if(u==='https://id.twitch.tv/oauth2/token')return response({access_token:'app-token',expires_in:3600});
+  if(u.endsWith('/chat/messages')){chat=JSON.parse(o.body);return response({data:[{is_sent:true,message_id:'chat-2'}]});}
+  throw Error('Unexpected placeholder fetch: '+u);
+ };
+ await processChatEvent({}, {broadcaster_user_id:'67890',broadcaster_user_login:'secondstreamer',broadcaster_user_name:'Second Streamer',chatter_user_login:'viewer',chatter_user_name:'Viewer',message_type:'text',message:{text:'!hello'}});
+ assert.equal(chat.message,'Hi Viewer! Welcome to Second Streamer; use !hello.');
 });
 test('creator OAuth start binds nonce to the authenticated creator and keeps the registered callback',async()=>{
  let saved;global.fetch=async(u,o)=>{if(u.endsWith('/bot_oauth_nonces')){saved=JSON.parse(o.body);return new Response(null,{status:201});}return baseFetch(u)};

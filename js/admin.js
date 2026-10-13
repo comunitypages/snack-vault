@@ -1064,12 +1064,14 @@ async function loadCloudBot() {
     $('toggleBot').textContent=cloudConnection?.enabled?'Disable Bot':'Enable Bot';
     $('testBot').disabled=!cloudConnection?.enabled;
     $('cloudBotTotals').textContent=`${d.summary.total_pulls} pulls · ${d.summary.collectors} collectors · ${d.summary.total_copies} snacks owned`;
+    $('redemptionCooldown').value=String(cloudConnection?.redemption_user_cooldown_seconds??1);
     if(Number(d.summary.eligible_snacks)===0) $('cloudBotMessage').textContent='No snacks are eligible for pulls. Enable at least one snack and set its weight above 0 in Snack Management.';
     $('rewardStatus').textContent=cloudConnection?.reward_id?`Reward connected · Redemptions: ${cloudConnection.eventsub_status||'not subscribed'} · Chat: ${cloudConnection.eventsub_chat_status||'not subscribed'}. Use Check / repair EventSub.`:'No Channel Point reward selected.';
     const rows=$('deliveryHistory');rows.replaceChildren();
     for(const item of d.summary.deliveries||[]) {
       const row=document.createElement('div');row.className='delivery-row';
-      const label=document.createElement('span');label.textContent=`${new Date(item.created_at).toLocaleString()} · ${item.user_login||'Viewer'} · Chat: ${item.chat_status} · Reward: ${item.fulfillment_status}${item.error?' · Pull failed: '+item.error:''}`;row.append(label);
+      const pullStatus=item.error==='user_cooldown'?` · Viewer cooldown${item.retry_after?` · retry in ${item.retry_after}s`:''}`:item.error?' · Pull failed: '+item.error:'';
+      const label=document.createElement('span');label.textContent=`${new Date(item.created_at).toLocaleString()} · ${item.user_login||'Viewer'} · Chat: ${item.chat_status} · Reward: ${item.fulfillment_status}${pullStatus}`;row.append(label);
       if(['pending','uncertain','sending'].includes(item.chat_status)||['pending','retry_needed'].includes(item.fulfillment_status)) {
         const button=document.createElement('button');button.type='button';button.textContent='Retry delivery';
         button.addEventListener('click',()=>runCloudAction(button,async()=>{
@@ -1110,13 +1112,13 @@ async function loadCommands() {
   for(const item of commandRows){
     const row=document.createElement('div');row.className='command-item';
     const name=document.createElement('span');name.className='command-name';name.textContent='!'+item.command_name;
-    const response=document.createElement('span');response.textContent=item.response;
+    const response=document.createElement('span');response.textContent=item.command_type==='pull'?'Opens a snack bag':item.response;
     const cool=document.createElement('span');cool.textContent=`${item.cooldown_seconds}s cooldown · ${item.enabled?'On':'Off'}`;
     const edit=document.createElement('button');edit.type='button';edit.textContent='Edit';edit.addEventListener('click',()=>{
-      $('commandId').value=item.id;$('commandName').value=item.command_name;$('commandResponse').value=item.response;$('commandCooldown').value=item.cooldown_seconds;$('saveCommand').textContent='Save changes';$('cancelCommand').hidden=false;$('commandName').focus();
+      $('commandId').value=item.id;$('commandName').value=item.command_name;$('commandType').value=item.command_type||'response';$('commandResponse').value=item.response;$('commandCooldown').value=item.cooldown_seconds;syncCommandFields();$('saveCommand').textContent='Save changes';$('cancelCommand').hidden=false;$('commandName').focus();
     });
     const toggle=document.createElement('button');toggle.type='button';toggle.textContent=item.enabled?'Disable':'Enable';toggle.addEventListener('click',()=>runCloudAction(toggle,async()=>{
-      await cloudRequest('/api/bot/commands',{id:item.id,command_name:item.command_name,response:item.response,cooldown_seconds:item.cooldown_seconds,enabled:!item.enabled},'PUT');await loadCommands();
+      await cloudRequest('/api/bot/commands',{id:item.id,command_name:item.command_name,command_type:item.command_type||'response',response:item.response,cooldown_seconds:item.cooldown_seconds,enabled:!item.enabled},'PUT');await loadCommands();
     }));
     const remove=document.createElement('button');remove.type='button';remove.textContent='Delete';remove.addEventListener('click',()=>runCloudAction(remove,async()=>{
       if(!confirm(`Delete !${item.command_name}?`))return;await cloudRequest('/api/bot/commands',{id:item.id},'DELETE');await loadCommands();
@@ -1124,10 +1126,12 @@ async function loadCommands() {
     row.append(name,response,cool,edit,toggle,remove);list.append(row);
   }
 }
-function resetCommandForm(){ $('commandForm').reset();$('commandId').value='';$('commandCooldown').value='5';$('saveCommand').textContent='Add command';$('cancelCommand').hidden=true; }
+function syncCommandFields(){const pull=$('commandType').value==='pull';$('commandResponse').disabled=pull;$('commandResponse').required=!pull;$('commandResponse').placeholder=pull?'Snack result is announced automatically.':'{user} is lurking. See you soon!';}
+function resetCommandForm(){ $('commandForm').reset();$('commandId').value='';$('commandCooldown').value='5';$('saveCommand').textContent='Add command';$('cancelCommand').hidden=true;syncCommandFields(); }
+$('commandType').addEventListener('change',syncCommandFields);syncCommandFields();
 $('commandForm').addEventListener('submit',async event=>{
   event.preventDefault();const button=$('saveCommand');button.disabled=true;$('commandMessage').textContent='Saving…';
-  const id=$('commandId').value;const data={command_name:$('commandName').value,response:$('commandResponse').value,cooldown_seconds:Number($('commandCooldown').value),enabled:true};if(id)data.id=id;
+  const id=$('commandId').value;const data={command_name:$('commandName').value,command_type:$('commandType').value,response:$('commandResponse').value,cooldown_seconds:Number($('commandCooldown').value),enabled:true};if(id)data.id=id;
   try{await cloudRequest('/api/bot/commands',data,id?'PUT':'POST');resetCommandForm();$('commandMessage').textContent='Command saved. Click Check / repair EventSub if chat is not enabled.';await loadCommands();}
   catch(error){$('commandMessage').textContent=error.message;}
   finally{button.disabled=false;}
@@ -1148,8 +1152,14 @@ $('testBot').addEventListener('click',()=>runCloudAction($('testBot'),async()=>{
 $('refreshBot').addEventListener('click',()=>runCloudAction($('refreshBot'),async()=>{await Promise.all([loadStats(),loadPullHistory(),loadCloudBot()]);$('cloudBotMessage').textContent='Dashboard refreshed.';}));
 $('loadRewards').addEventListener('click',()=>runCloudAction($('loadRewards'),async()=>{
   const d=await cloudRequest('/api/bot/rewards');const select=$('rewardSelect');select.replaceChildren();
+  $('redemptionCooldown').value=String(d.viewer_cooldown_seconds??1);
   for(const r of d.rewards){const option=document.createElement('option');option.value=r.id;option.textContent=`${r.title} · ${r.cost} points${r.managed?'':' · manual fulfillment'}`;option.selected=r.id===cloudConnection?.reward_id;select.append(option);}
   $('cloudBotMessage').textContent=d.rewards.length?'Choose a reward below.':'No rewards found. Create one below.';
+}));
+$('saveRedemptionCooldown').addEventListener('click',()=>runCloudAction($('saveRedemptionCooldown'),async()=>{
+  const seconds=Number($('redemptionCooldown').value);
+  const d=await cloudRequest('/api/bot/rewards',{action:'cooldown',viewer_cooldown_seconds:seconds});
+  $('cloudBotMessage').textContent=`Per-viewer redemption cooldown saved: ${d.viewer_cooldown_seconds} second${d.viewer_cooldown_seconds===1?'':'s'}.`;
 }));
 for(const [id,action] of [['selectReward','select'],['createReward','create'],['retrySubscription','subscribe']]) {
   $(id).addEventListener('click',()=>runCloudAction($(id),async()=>{
