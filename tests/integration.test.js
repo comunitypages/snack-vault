@@ -5,6 +5,7 @@ import { Readable } from 'node:stream';
 import { encrypt,decrypt,owner } from '../lib/server.js';
 import dashboard from '../api/bot/dashboard.js';
 import rewards from '../api/bot/rewards.js';
+import overlay from '../api/overlay.js';
 import channelStart from '../api/auth/twitch/channel-start.js';
 import { finishCreatorOAuth } from '../lib/creator-oauth.js';
 import webhook,{verify,processChatEvent} from '../api/twitch/eventsub.js';
@@ -46,6 +47,27 @@ test('enable action ignores a caller-supplied creator ID and updates the authent
  let patched='';global.fetch=async(u,o)=>{if(o?.method==='PATCH'){patched=u;return new Response(null,{status:204});}return baseFetch(u)};
  const r=res();await dashboard(request({action:'enabled',enabled:false,creator_id:'someone-else'}),r);
  assert.equal(r.statusCode,200);assert.ok(patched.includes(creatorId));assert.ok(!patched.includes('someone-else'));
+});
+test('enabling the cloud bot registers chat and redemption EventSub before activating it',async()=>{
+ const created=[];let activated=false;
+ global.fetch=async(u,o={})=>{
+  if(u==='https://id.twitch.tv/oauth2/token')return response({access_token:'app-token',expires_in:3600});
+  if(u.includes('/private_twitch_bot_tokens?'))return response([{twitch_user_id:'12345',twitch_login:'afterhoursai'}]);
+  if(u.includes('/eventsub/subscriptions?type='))return response({data:[]});
+  if(u.endsWith('/eventsub/subscriptions')&&o.method==='POST'){
+   const body=JSON.parse(o.body);created.push(body.type);
+   return response({data:[{id:`sub-${created.length}`,type:body.type,status:'webhook_callback_verification_pending'}]});
+  }
+  if(o.method==='PATCH'&&u.includes('/creator_twitch_bots?creator_id=')){
+   if(JSON.parse(o.body).enabled===true)activated=true;
+   return new Response(null,{status:204});
+  }
+  return baseFetch(u);
+ };
+ const r=res();await dashboard(request({action:'enabled',enabled:true}),r);
+ assert.equal(r.statusCode,200,JSON.stringify(r.body));assert.equal(activated,true);
+ assert.deepEqual(created.sort(),['channel.channel_points_custom_reward_redemption.add','channel.chat.message'].sort());
+ assert.equal(r.body.chat_status,'webhook_callback_verification_pending');
 });
 test('test messages use the connected second channel and the existing AfterHoursAI identity',async()=>{
  let chat;global.fetch=async(u,o)=>{
@@ -98,6 +120,15 @@ test('custom chat replies support percent, Twitch-style and dollar placeholders'
  };
  await processChatEvent({}, {broadcaster_user_id:'67890',broadcaster_user_login:'secondstreamer',broadcaster_user_name:'Second Streamer',chatter_user_login:'viewer',chatter_user_name:'Viewer',message_type:'text',message:{text:'!hello'}});
  assert.equal(chat.message,'Hi Viewer! Welcome to Second Streamer; use !hello.');
+});
+test('public overlay feed returns pull activity and collection data without credentials',async()=>{
+ const feed={events:[{id:'pull-1',username:'Viewer',snack_name:'Chips',rarity:'Rare'}],total:4,items:[{name:'Chips',count:4}],leaders:[{name:'Viewer',count:4}],snacks:[{name:'Chips',image_url:null,rarity:'Rare'}]};
+ global.fetch=async u=>u.includes('/rpc/sv_overlay_feed')?response(feed):baseFetch(u);
+ const r=res();await overlay({method:'GET',query:{creator:'creator-two'}},r);
+ assert.equal(r.statusCode,200);assert.equal(r.body.events[0].snack_name,'Chips');
+ assert.equal(r.body.latest.total,4);assert.deepEqual(r.body.latest.items,feed.items);
+ assert.match(r.headers['Cache-Control'],/s-maxage=5/);
+ assert.ok(!JSON.stringify(r.body).includes('test-server-only-key'));
 });
 test('creator OAuth start binds nonce to the authenticated creator and keeps the registered callback',async()=>{
  let saved;global.fetch=async(u,o)=>{if(u.endsWith('/bot_oauth_nonces')){saved=JSON.parse(o.body);return new Response(null,{status:201});}return baseFetch(u)};

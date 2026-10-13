@@ -1,29 +1,24 @@
-# Snack Vault — chat pulls, placeholders, and viewer cooldowns
+# Snack Vault launch update
 
-This follow-up completes the chat `!snack` pull and adds a per-viewer Channel Point cooldown. It also accepts `{user}`, `%user%`, `$(user)`, `$user`, and `$user%` placeholders in custom chat replies (with matching `channel` and `command` forms).
+This update fixes the incoming Twitch chat subscription setup and adds the missing public overlay feed route. Enabling the cloud bot now registers or repairs both chat and Channel Point EventSub subscriptions. No new OAuth application or credentials are needed.
 
-## Install in order
+## Install
 
-1. In the existing Supabase project, open **SQL Editor → New query**. Run `supabase/20261013-afterhours-chat-pull.sql` from this ZIP. It adds a one-second default per-viewer cooldown and the default `!snack` pull command. The migration is safe to rerun; do not rerun `setup.sql` or the earlier migrations.
-2. Upload the ZIP's files to the root of your existing GitHub repository, keeping folder paths in place. Commit and wait until Vercel shows **Ready**.
-3. Open `/admin` → **Bot Setup**. Confirm **Chat: enabled** under EventSub. Set **Per-viewer redemption cooldown** to 1 second or your preferred 1–3600 seconds, then click **Save cooldown**. Create or select a reward and test `!snack` in chat.
+1. Upload the files in this update to the root of the existing GitHub repository, keeping the folder paths. Replace matching files, add `api/overlay.js`, commit, and wait for Vercel to show **Ready**.
+2. In Snack Vault, open **Admin → Bot Setup** and click **Repair Twitch subscriptions**. Wait a few seconds, then click **Refresh**. The dashboard should show **Chat: enabled**.
+3. Send `!snack` in your Twitch chat. The default command opens a snack bag; other saved commands use their selected reply or pull action.
+4. In OBS, use the overlay URLs from the dashboard. Add `&demo=1` temporarily to preview an overlay; remove it for stream. Pull alerts and the vending machine stay transparent until a new pull happens.
 
-New rewards created here have Twitch's global cooldown disabled. If you select a reward this app can manage, it disables that reward's global cooldown so Snack Vault can apply its own per-viewer setting. Rewards created by another app may retain Twitch's global cooldown. Twitch's API supports cooldown seconds, while its UI only displays global cooldowns of at least 60 seconds. Too-soon attempts make no pull; Snack Vault automatically cancels/refunds app-managed rewards, and external rewards may need manual handling.
+If you have not already applied the earlier command migration, run `supabase/20261013-afterhours-chat-pull.sql` in the existing Supabase SQL Editor after `20261013-afterhours-commands.sql`. Do not rerun `setup.sql`.
 
-The cooldown applies to successful Channel Point pulls per viewer. It does not block different viewers. Failed pulls do not start the cooldown. The chat `!snack` command has its own configurable command cooldown.
+## Files in this update
 
-## Files in this ZIP
-
-- `api/bot/commands.js`
 - `api/bot/dashboard.js`
 - `api/bot/rewards.js`
-- `api/twitch/eventsub.js`
+- `api/overlay.js`
 - `admin/index.html`
 - `js/admin.js`
-- `supabase/20261013-afterhours-chat-pull.sql`
-- `supabase/20261013-afterhours-commands.sql`
 - `tests/integration.test.js`
 - `README-FIRST.md`
-- `CHANGED-FILES.txt`
 
-The working `api/bot/send-message.js`, existing bot connection, credentials, and registered OAuth callback are unchanged. Local tests cover the one-second cooldown, placeholder aliases, custom chat pulls, command cooldowns, and migration reruns. Test once in production after deployment; no live Twitch/database credentials were available for this check.
+The existing `api/bot/send-message.js`, bot connection, encrypted tokens, registered Twitch callback, and snack data are unchanged. The local test suite covers chat subscription registration, `!snack`, overlay feed output, OAuth protections, and cooldown behavior.

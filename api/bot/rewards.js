@@ -1,4 +1,4 @@
-import { owner,connection,patchConnection,channelAPI,helix,appAccess,eventSecret,origin,fail,report } from '../../lib/server.js';
+import { db,owner,connection,patchConnection,channelAPI,helix,appAccess,eventSecret,origin,fail,report } from '../../lib/server.js';
 const REWARD_TYPE='channel.channel_points_custom_reward_redemption.add';
 const CHAT_TYPE='channel.chat.message';
 async function ensureSubscription(conn,type,condition,columns) {
@@ -23,7 +23,7 @@ async function ensureSubscription(conn,type,condition,columns) {
   await patchConnection(conn.creator_id,{[columns.id]:subscription.id,[columns.status]:subscription.status});
   return subscription;
 }
-async function subscribe(conn) {
+export async function subscribe(conn) {
   const botRows=await db('private_twitch_bot_tokens?id=eq.afterhoursai&select=twitch_user_id,twitch_login');
   const bot=botRows[0];
   if(!bot||bot.twitch_login.toLowerCase()!=='afterhoursai') throw fail(503,'The existing AfterHoursAI connection was not found.');

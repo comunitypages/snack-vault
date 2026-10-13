@@ -517,7 +517,7 @@
         <p id="cloudBotTotals"></p>
         <p class="muted">Connect your streaming channel. AfterHoursAI remains the shared bot. Disabling stops new pulls and chat here; pause the reward in Twitch too so viewers cannot spend points while it is off.</p>
         <h3>Channel Point snack bags</h3>
-        <p id="rewardStatus">Connect Twitch to configure a reward.</p>
+        <p id="rewardStatus">Connect Twitch to configure a reward. Enabling the bot checks the Twitch chat and redemption subscriptions.</p>
         <div class="cloud-actions">
           <button type="button" id="loadRewards">Load my rewards</button>
           <select id="rewardSelect" aria-label="Existing Twitch reward"><option value="">Choose a reward</option></select>
@@ -527,7 +527,7 @@
           <label>New reward name <input id="rewardTitle" maxlength="45" value="Open a Snack Bag"></label>
           <label>Point cost <input id="rewardCost" type="number" min="1" step="1" value="100"></label>
           <button type="button" id="createReward">Create and connect reward</button>
-          <button type="button" id="retrySubscription">Check / repair EventSub</button>
+          <button type="button" id="retrySubscription">Repair Twitch subscriptions</button>
         </div>
         <div class="cloud-actions">
           <label>Per-viewer redemption cooldown (seconds) <input id="redemptionCooldown" type="number" min="1" max="3600" step="1" value="1"></label>

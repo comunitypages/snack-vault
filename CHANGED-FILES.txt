@@ -1,11 +1,8 @@
-UPDATED api/bot/commands.js
-UPDATED api/bot/dashboard.js
-UPDATED api/bot/rewards.js
-UPDATED api/twitch/eventsub.js
-UPDATED admin/index.html
-UPDATED js/admin.js
-UPDATED tests/integration.test.js
-ADDED supabase/20261013-afterhours-chat-pull.sql
-UPDATED README-FIRST.md
+UPDATED api/bot/dashboard.js — enable action registers Twitch chat and redemption subscriptions.
+UPDATED api/bot/rewards.js — imports database helper used by EventSub setup and exports subscription repair for the dashboard.
+ADDED api/overlay.js — public polling endpoint required by OBS overlay URLs.
+UPDATED admin/index.html — clarifies subscription status and repair action.
+UPDATED js/admin.js — displays both Twitch subscription statuses and enable result.
+UPDATED tests/integration.test.js — tests subscription repair and overlay feed response.
 
-Adds default !snack pulls, response placeholders {user}/%user%/$(user)/$user/$user%, and configurable one-second-minimum per-viewer Channel Point cooldown. Existing bot connection and api/bot/send-message.js are unchanged.
+No SQL migration is required for this launch fix if the existing bot/command migrations are already installed.

@@ -1066,7 +1066,7 @@ async function loadCloudBot() {
     $('cloudBotTotals').textContent=`${d.summary.total_pulls} pulls · ${d.summary.collectors} collectors · ${d.summary.total_copies} snacks owned`;
     $('redemptionCooldown').value=String(cloudConnection?.redemption_user_cooldown_seconds??1);
     if(Number(d.summary.eligible_snacks)===0) $('cloudBotMessage').textContent='No snacks are eligible for pulls. Enable at least one snack and set its weight above 0 in Snack Management.';
-    $('rewardStatus').textContent=cloudConnection?.reward_id?`Reward connected · Redemptions: ${cloudConnection.eventsub_status||'not subscribed'} · Chat: ${cloudConnection.eventsub_chat_status||'not subscribed'}. Use Check / repair EventSub.`:'No Channel Point reward selected.';
+    $('rewardStatus').textContent=`Channel Point reward: ${cloudConnection?.reward_id?'connected':'not selected'} · Redemptions: ${cloudConnection?.eventsub_status||'not subscribed'} · Chat commands: ${cloudConnection?.eventsub_chat_status||'not subscribed'}. Enabling the bot checks both Twitch subscriptions automatically.`;
     const rows=$('deliveryHistory');rows.replaceChildren();
     for(const item of d.summary.deliveries||[]) {
       const row=document.createElement('div');row.className='delivery-row';
@@ -1143,8 +1143,8 @@ $('connectTwitch').addEventListener('click',()=>runCloudAction($('connectTwitch'
 }));
 $('toggleBot').addEventListener('click',()=>runCloudAction($('toggleBot'),async()=>{
   const enabled=!cloudConnection?.enabled;
-  await cloudRequest('/api/bot/dashboard',{action:'enabled',enabled});
-  $('cloudBotMessage').textContent=enabled?'Bot enabled.':'Bot disabled. Pause the reward in Twitch while the bot is off.';
+  const result=await cloudRequest('/api/bot/dashboard',{action:'enabled',enabled});
+  $('cloudBotMessage').textContent=enabled?`Bot enabled. Twitch chat: ${result.chat_status||'subscription checked'}. If Twitch says verification is pending, wait a few seconds and refresh.`:'Bot disabled. Pause the reward in Twitch while the bot is off.';
 }));
 $('testBot').addEventListener('click',()=>runCloudAction($('testBot'),async()=>{
   await cloudRequest('/api/bot/dashboard',{action:'test'});$('cloudBotMessage').textContent='Test message sent! Check your Twitch chat.';
@@ -1164,7 +1164,7 @@ $('saveRedemptionCooldown').addEventListener('click',()=>runCloudAction($('saveR
 for(const [id,action] of [['selectReward','select'],['createReward','create'],['retrySubscription','subscribe']]) {
   $(id).addEventListener('click',()=>runCloudAction($(id),async()=>{
     const d=await cloudRequest('/api/bot/rewards',{action,reward_id:$('rewardSelect').value,title:$('rewardTitle').value,cost:Number($('rewardCost').value)});
-    $('cloudBotMessage').textContent=`Saved. EventSub: ${d.status}. ${d.managed===false?'Fulfill/refund this reward manually in Twitch.':''}`;
+    $('cloudBotMessage').textContent=`Saved. Redemptions: ${d.status}; chat: ${d.chat_status||'not reported'}. ${d.managed===false?'Fulfill/refund this reward manually in Twitch.':''}`;
   }));
 }
 const botResult=new URLSearchParams(location.search).get('bot');

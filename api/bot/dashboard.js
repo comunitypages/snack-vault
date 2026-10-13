@@ -1,5 +1,6 @@
 import { deliver } from '../../lib/delivery.js';
 import { db, owner, connection, patchConnection, sendChat, fail, report } from '../../lib/server.js';
+import { subscribe } from './rewards.js';
 export default async function handler(req,res) {
   res.setHeader('Cache-Control','no-store'); res.setHeader('Allow','GET, POST');
   if(!['GET','POST'].includes(req.method)) return res.status(405).json({error:'Use GET or POST.'});
@@ -15,6 +16,13 @@ export default async function handler(req,res) {
     const action=req.body?.action;
     if(action==='enabled') {
       if(typeof req.body.enabled!=='boolean') throw fail(400,'enabled must be true or false.');
+      if(req.body.enabled) {
+        // Starting the cloud bot also repairs its incoming Twitch events, which
+        // are required for chat commands and Channel Point redemptions.
+        const subscriptions=await subscribe(conn);
+        await patchConnection(creator.id,{enabled:true});
+        return res.json({success:true,eventsub_status:subscriptions.status,chat_status:subscriptions.chat_status});
+      }
       await patchConnection(creator.id,{enabled:req.body.enabled});
       return res.json({success:true});
     }
