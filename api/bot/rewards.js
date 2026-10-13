@@ -1,24 +1,37 @@
 import { owner,connection,patchConnection,channelAPI,helix,appAccess,eventSecret,origin,fail,report } from '../../lib/server.js';
-const TYPE='channel.channel_points_custom_reward_redemption.add';
-async function subscribe(conn) {
+const REWARD_TYPE='channel.channel_points_custom_reward_redemption.add';
+const CHAT_TYPE='channel.chat.message';
+async function ensureSubscription(conn,type,condition,columns) {
   const token=await appAccess(), callback=`${origin()}/api/twitch/eventsub`;
-  // Reuse a matching live or pending subscription, including after an earlier save failure.
   let cursor; const stale=[];
   do {
-    const page=await helix(`eventsub/subscriptions?type=${TYPE}${cursor?'&after='+encodeURIComponent(cursor):''}`,token);
-    for(const s of page.data||[]) {
-      if(s.condition?.broadcaster_user_id!==conn.twitch_user_id||s.transport?.callback!==callback) continue;
-      if(['enabled','webhook_callback_verification_pending'].includes(s.status)) {
-        await patchConnection(conn.creator_id,{eventsub_id:s.id,eventsub_status:s.status}); return s;
+    const page=await helix(`eventsub/subscriptions?type=${type}${cursor?'&after='+encodeURIComponent(cursor):''}`,token);
+    for(const sub of page.data||[]) {
+      if(sub.transport?.callback!==callback||Object.entries(condition).some(([k,v])=>sub.condition?.[k]!==v)) continue;
+      if(['enabled','webhook_callback_verification_pending'].includes(sub.status)) {
+        await patchConnection(conn.creator_id,{[columns.id]:sub.id,[columns.status]:sub.status});
+        return sub;
       }
-      stale.push(s.id);
+      stale.push(sub.id);
     }
     cursor=page.pagination?.cursor;
   } while(cursor);
   for(const id of stale) await helix(`eventsub/subscriptions?id=${encodeURIComponent(id)}`,token,{method:'DELETE'});
-  const d=await helix('eventsub/subscriptions',token,{method:'POST',body:{type:TYPE,version:'1',condition:{broadcaster_user_id:conn.twitch_user_id},transport:{method:'webhook',callback,secret:eventSecret()}}});
-  const s=d.data?.[0]; if(!s) throw fail(502,'Twitch did not return an EventSub subscription.');
-  await patchConnection(conn.creator_id,{eventsub_id:s.id,eventsub_status:s.status}); return s;
+  const d=await helix('eventsub/subscriptions',token,{method:'POST',body:{type,version:'1',condition,transport:{method:'webhook',callback,secret:eventSecret()}}});
+  const subscription=d.data?.[0];
+  if(!subscription) throw fail(502,`Twitch did not return the ${type} subscription.`);
+  await patchConnection(conn.creator_id,{[columns.id]:subscription.id,[columns.status]:subscription.status});
+  return subscription;
+}
+async function subscribe(conn) {
+  const botRows=await db('private_twitch_bot_tokens?id=eq.afterhoursai&select=twitch_user_id,twitch_login');
+  const bot=botRows[0];
+  if(!bot||bot.twitch_login.toLowerCase()!=='afterhoursai') throw fail(503,'The existing AfterHoursAI connection was not found.');
+  const [reward,chat]=await Promise.all([
+    ensureSubscription(conn,REWARD_TYPE,{broadcaster_user_id:conn.twitch_user_id},{id:'eventsub_id',status:'eventsub_status'}),
+    ensureSubscription(conn,CHAT_TYPE,{broadcaster_user_id:conn.twitch_user_id,user_id:bot.twitch_user_id},{id:'eventsub_chat_id',status:'eventsub_chat_status'})
+  ]);
+  return {reward,chat,status:reward.status,chat_status:chat.status};
 }
 export default async function handler(req,res) {
   res.setHeader('Cache-Control','no-store');res.setHeader('Allow','GET, POST');
@@ -33,7 +46,7 @@ export default async function handler(req,res) {
       return res.json({rewards:all.data.map(r=>({id:r.id,title:r.title,cost:r.cost,managed:ids.has(r.id)}))});
     }
     const action=req.body?.action;
-    if(action==='subscribe') { const s=await subscribe(conn);return res.json({success:true,status:s.status}); }
+    if(action==='subscribe') { const s=await subscribe(conn);return res.json({success:true,status:s.status,chat_status:s.chat_status}); }
     let reward,managed;
     if(action==='create') {
       const title=req.body.title,cost=req.body.cost;
@@ -50,6 +63,6 @@ export default async function handler(req,res) {
     await patchConnection(c.id,{reward_id:reward.id,reward_managed:managed});
     // Save the reward even if subscription creation fails; the dashboard provides a retry button.
     const s=await subscribe(conn);
-    return res.json({success:true,status:s.status,managed});
+    return res.json({success:true,status:s.status,chat_status:s.chat_status,managed});
   } catch(error) {return report(res,error);}
 }

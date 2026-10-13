@@ -1,0 +1,12 @@
+ADDED api/bot/commands.js
+UPDATED api/bot/dashboard.js
+UPDATED api/bot/rewards.js
+UPDATED api/twitch/eventsub.js
+UPDATED admin/index.html
+UPDATED css/admin.css
+UPDATED js/admin.js
+ADDED supabase/20261013-afterhours-commands.sql
+UPDATED tests/integration.test.js
+UPDATED README-FIRST.md
+
+Existing bot connection and api/bot/send-message.js are unchanged.

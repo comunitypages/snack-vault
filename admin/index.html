@@ -532,6 +532,19 @@
         <p>Rewards created here can be fulfilled or refunded automatically. Rewards made elsewhere require manual fulfillment/refunds in Twitch. Turn off any old bot action for the selected reward to avoid two pulls per redemption.</p>
         <div id="deliveryHistory"></div>
         <hr>
+        <h3>Custom chat commands</h3>
+        <p>Make your own command name and response. Use <code>{user}</code>, <code>{channel}</code>, or <code>{command}</code> in the response. Commands work while the bot is enabled and EventSub chat shows enabled.</p>
+        <form id="commandForm" class="cloud-actions">
+          <input type="hidden" id="commandId">
+          <label>Command name <input id="commandName" maxlength="24" placeholder="lurk" required></label>
+          <label>Chat response <input id="commandResponse" maxlength="450" placeholder="{user} is lurking. See you soon!" required></label>
+          <label>Cooldown (seconds) <input id="commandCooldown" type="number" min="1" max="3600" value="5" required></label>
+          <button type="submit" id="saveCommand">Add command</button>
+          <button type="button" id="cancelCommand" hidden>Cancel edit</button>
+        </form>
+        <p id="commandMessage" role="status"></p>
+        <div id="commandList"></div>
+        <hr>
         <h3>OBS overlay URLs</h3>
         <p>Copy a URL into an OBS Browser Source. Suggested canvas: 1920 × 1080. The collection overlay shows the latest puller's collection.</p>
         <div id="overlayLinks"></div>

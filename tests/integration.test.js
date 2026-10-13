@@ -17,7 +17,7 @@ process.env.TWITCH_REDIRECT_URI='https://snackvault.vercel.app/api/auth/twitch/c
 const creatorId='11111111-1111-4111-8111-111111111111';
 const userId='22222222-2222-4222-8222-222222222222';
 const creator={id:creatorId,slug:'creator-two',name:'Creator Two'};
-const conn={creator_id:creatorId,twitch_user_id:'67890',twitch_login:'secondstreamer',enabled:true,access_token_enc:'NEVER_PUBLIC_ACCESS',refresh_token_enc:'NEVER_PUBLIC_REFRESH',eventsub_status:'enabled'};
+const conn={creator_id:creatorId,twitch_user_id:'67890',twitch_login:'secondstreamer',enabled:true,access_token_enc:'NEVER_PUBLIC_ACCESS',refresh_token_enc:'NEVER_PUBLIC_REFRESH',eventsub_status:'enabled',eventsub_chat_status:'enabled'};
 const response=(data,status=200)=>new Response(JSON.stringify(data),{status});
 function res(){return {statusCode:200,headers:{},setHeader(k,v){this.headers[k]=v;},status(s){this.statusCode=s;return this;},json(d){this.body=d;return this;},send(d){this.body=d;return this;},end(){return this;},redirect(s,u){this.statusCode=s;this.url=u;return this;}};}
 function request(body,method='POST'){return {method,body,headers:{authorization:'Bearer owner-session'},query:{}};}
@@ -35,9 +35,10 @@ test('invalid Supabase session cannot use server database privileges',async()=>{
  let calls=0;global.fetch=async()=>{calls++;return response({},401)};
  await assert.rejects(()=>owner(request({})),{status:401});assert.equal(calls,1);
 });
-test('dashboard never returns encrypted tokens or service credentials',async()=>{
+test('dashboard exposes EventSub state without returning credentials',async()=>{
  global.fetch=async u=>baseFetch(u);const r=res();await dashboard(request(null,'GET'),r);
  assert.equal(r.statusCode,200);assert.equal(r.body.connection.twitch_login,'secondstreamer');
+ assert.equal(r.body.connection.eventsub_chat_status,'enabled');
  const serialized=JSON.stringify(r.body);assert.ok(!serialized.includes('NEVER_PUBLIC'));assert.ok(!serialized.includes('test-server-only-key'));
 });
 test('enable action ignores a caller-supplied creator ID and updates the authenticated owner only',async()=>{

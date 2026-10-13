@@ -7,7 +7,7 @@ export default async function handler(req,res) {
     const creator=await owner(req), conn=await connection(creator.id);
     if(req.method==='GET') {
       // Explicit safe projection: encrypted and plaintext credentials never leave the server.
-      const safe=conn?{twitch_login:conn.twitch_login,enabled:conn.enabled,connected_at:conn.connected_at,last_test_at:conn.last_test_at,reward_id:conn.reward_id,eventsub_status:conn.eventsub_status}:null;
+      const safe=conn?{twitch_login:conn.twitch_login,enabled:conn.enabled,connected_at:conn.connected_at,last_test_at:conn.last_test_at,reward_id:conn.reward_id,eventsub_status:conn.eventsub_status,eventsub_chat_status:conn.eventsub_chat_status}:null;
       const summary=await db('rpc/sv_bot_summary',{method:'POST',body:{p_creator:creator.id}});
       return res.json({connection:safe,summary});
     }
