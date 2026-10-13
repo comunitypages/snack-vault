@@ -1,3 +1,4 @@
+import { finishCreatorOAuth } from "../../../lib/creator-oauth.js";
 
 import {
   createCipheriv,
@@ -66,6 +67,7 @@ export default async function handler(req, res) {
   }
 
   const cookies = getCookies(req);
+  if (cookies.twitch_oauth_flow === "creator") return finishCreatorOAuth(req, res, cookies);
 
   const state = req.query.state;
   const code = req.query.code;
