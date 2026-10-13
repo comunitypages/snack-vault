@@ -394,6 +394,8 @@ async function refreshDashboard() {
   ]);
 
   setEndpoint();
+  renderOverlayLinks();
+  await loadCloudBot();
 }
 
 
@@ -1043,6 +1045,85 @@ supabase.auth.onAuthStateChange((event) => {
 // ======================================================
 // START
 // ======================================================
+
+let cloudConnection = null;
+async function cloudRequest(path,body) {
+  const session=await getSession();
+  if(!session?.access_token) throw new Error('Sign in again to continue.');
+  const response=await fetch(path,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(data.error||`Request failed (${response.status}).`);
+  return data;
+}
+async function loadCloudBot() {
+  try {
+    const d=await cloudRequest('/api/bot/dashboard');cloudConnection=d.connection;
+    $('cloudBotStatus').textContent=cloudConnection?`Connected: ${cloudConnection.twitch_login} · ${cloudConnection.enabled?'Enabled':'Disabled'}`:'No Twitch channel connected yet.';
+    $('connectTwitch').textContent=cloudConnection?'Reconnect Twitch':'Connect Twitch';
+    $('toggleBot').disabled=!cloudConnection;
+    $('toggleBot').textContent=cloudConnection?.enabled?'Disable Bot':'Enable Bot';
+    $('testBot').disabled=!cloudConnection?.enabled;
+    $('cloudBotTotals').textContent=`${d.summary.total_pulls} pulls · ${d.summary.collectors} collectors · ${d.summary.total_copies} snacks owned`;
+    $('rewardStatus').textContent=cloudConnection?.reward_id?`Reward connected · EventSub: ${cloudConnection.eventsub_status||'not subscribed'}. Use Check / repair to update this status.`:'No Channel Point reward selected.';
+    const rows=$('deliveryHistory');rows.replaceChildren();
+    for(const item of d.summary.deliveries||[]) {
+      const row=document.createElement('div');row.className='delivery-row';
+      const label=document.createElement('span');label.textContent=`${new Date(item.created_at).toLocaleString()} · Chat: ${item.chat_status} · Reward: ${item.fulfillment_status}`;row.append(label);
+      if(['pending','uncertain','sending'].includes(item.chat_status)||['pending','retry_needed'].includes(item.fulfillment_status)) {
+        const button=document.createElement('button');button.type='button';button.textContent='Retry delivery';
+        button.addEventListener('click',()=>runCloudAction(button,async()=>{
+          if(!confirm('Retry chat/fulfillment? If Twitch received an earlier message but its response was lost, the chat message may appear twice. The snack will not be awarded again.')) return;
+          await cloudRequest('/api/bot/dashboard',{action:'retry',redemption_id:item.redemption_id});
+          $('cloudBotMessage').textContent='Delivery retried. Review its status below.';
+        }));row.append(button);
+      }
+      rows.append(row);
+    }
+  } catch(error) {$('cloudBotStatus').textContent=error.message;}
+}
+async function runCloudAction(button,action) {
+  button.disabled=true;$('cloudBotMessage').textContent='Working…';
+  try {await action();}catch(error){$('cloudBotMessage').textContent=error.message;}
+  finally {button.disabled=false;await loadCloudBot();}
+}
+function renderOverlayLinks() {
+  const container=$('overlayLinks');container.replaceChildren();
+  const feed=new URL('/api/overlay',location.origin);feed.searchParams.set('creator',creator.slug);
+  for(const [label,path] of [['Animated vending machine','/overlay/vending/index.html'],['Pull alert','/overlay/pull-alert.html'],['Collection','/overlay/collection.html'],['Leaderboard','/overlay/leaderboard.html'],['Classic vending machine','/overlay/vending-machine.html']]) {
+    const url=new URL(path,location.origin);url.searchParams.set('creator',creator.slug);
+    if(path.includes('/vending/index')){url.searchParams.set('feed',feed.href);url.searchParams.set('catalog',feed.href);url.searchParams.set('brand',creator.name);url.searchParams.set('color',creator.accent_color||'#ff2d95');}
+    else url.searchParams.set('api',feed.href);
+    const title=document.createElement('label');title.textContent=label;
+    const row=document.createElement('div');row.className='copy';const input=document.createElement('input');input.readOnly=true;input.value=url.href;input.setAttribute('aria-label',label+' URL');
+    const button=document.createElement('button');button.type='button';button.textContent='Copy';button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(input.value);button.textContent='Copied!';setTimeout(()=>button.textContent='Copy',1500);}catch{input.focus();input.select();}});
+    row.append(input,button);container.append(title,row);
+  }
+}
+$('connectTwitch').addEventListener('click',()=>runCloudAction($('connectTwitch'),async()=>{
+  const d=await cloudRequest('/api/auth/twitch/channel-start',{});location.assign(d.url);
+}));
+$('toggleBot').addEventListener('click',()=>runCloudAction($('toggleBot'),async()=>{
+  const enabled=!cloudConnection?.enabled;
+  await cloudRequest('/api/bot/dashboard',{action:'enabled',enabled});
+  $('cloudBotMessage').textContent=enabled?'Bot enabled.':'Bot disabled. Pause the reward in Twitch while the bot is off.';
+}));
+$('testBot').addEventListener('click',()=>runCloudAction($('testBot'),async()=>{
+  await cloudRequest('/api/bot/dashboard',{action:'test'});$('cloudBotMessage').textContent='Test message sent! Check your Twitch chat.';
+}));
+$('refreshBot').addEventListener('click',()=>runCloudAction($('refreshBot'),async()=>{await Promise.all([loadStats(),loadPullHistory()]);$('cloudBotMessage').textContent='Dashboard refreshed.';}));
+$('loadRewards').addEventListener('click',()=>runCloudAction($('loadRewards'),async()=>{
+  const d=await cloudRequest('/api/bot/rewards');const select=$('rewardSelect');select.replaceChildren();
+  for(const r of d.rewards){const option=document.createElement('option');option.value=r.id;option.textContent=`${r.title} · ${r.cost} points${r.managed?'':' · manual fulfillment'}`;option.selected=r.id===cloudConnection?.reward_id;select.append(option);}
+  $('cloudBotMessage').textContent=d.rewards.length?'Choose a reward below.':'No rewards found. Create one below.';
+}));
+for(const [id,action] of [['selectReward','select'],['createReward','create'],['retrySubscription','subscribe']]) {
+  $(id).addEventListener('click',()=>runCloudAction($(id),async()=>{
+    const d=await cloudRequest('/api/bot/rewards',{action,reward_id:$('rewardSelect').value,title:$('rewardTitle').value,cost:Number($('rewardCost').value)});
+    $('cloudBotMessage').textContent=`Saved. EventSub: ${d.status}. ${d.managed===false?'Fulfill/refund this reward manually in Twitch.':''}`;
+  }));
+}
+const botResult=new URLSearchParams(location.search).get('bot');
+if(botResult){$('cloudBotMessage').textContent=botResult==='connected'?'Twitch connected. Enable the bot, then send a test message.':'Twitch connection was cancelled. Try again when ready.';history.replaceState(null,'',location.pathname+'#bot');}
 
 load().catch(error => {
   console.error(error);
