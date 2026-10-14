@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Snack Vault Creator Dashboard</title>
+
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+
+<body>
+
+
+<!-- ======================================================
+     LOGIN / CREATE ACCOUNT
+====================================================== -->
+
+<div id="login" class="login">
+
+  <div class="loginbox">
+
+    <i>SV</i>
+
+    <p class="eyebrow">SNACK VAULT</p>
+
+    <h1>Creator Dashboard</h1>
+
+    <p id="authDescription">
+      Sign in or create your Snack Vault account.
+    </p>
+
+
+    <form id="loginForm">
+
+      <input
+        id="email"
+        type="email"
+        placeholder="Email"
+        autocomplete="email"
+        required
+      >
+
+      <input
+        id="password"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        minlength="6"
+        required
+      >
+
+
+      <button
+        id="signInButton"
+        type="submit"
+      >
+        Sign in
+      </button>
+
+
+      <button
+        id="signUpButton"
+        type="button"
+        class="ghost"
+      >
+        Create account
+      </button>
+
+    </form>
+
+
+    <small id="loginMsg"></small>
+
+  </div>
+
+</div>
+
+
+
+<!-- ======================================================
+     CREATOR ONBOARDING
+====================================================== -->
+
+<div id="onboarding" class="login hidden">
+
+  <div class="loginbox onboardingbox">
+
+    <i>SV</i>
+
+    <p class="eyebrow">
+      SNACK VAULT
+    </p>
+
+    <h1>Welcome, Creator</h1>
+
+    <p>
+      Create your own Snack Vault or claim an existing
+      vault with an invite code.
+    </p>
+
+
+    <!-- CREATE NEW VAULT -->
+
+    <div class="panel">
+
+      <p class="eyebrow">
+        NEW CREATOR
+      </p>
+
+      <h2>
+        Create a new Vault
+      </h2>
+
+      <p>
+        Starting fresh? Create your own creator page.
+      </p>
+
+
+      <form id="createVaultForm">
+
+        <label>
+          Creator name
+
+          <input
+            id="newCreatorName"
+            type="text"
+            maxlength="50"
+            placeholder="underscorepower"
+            required
+          >
+        </label>
+
+
+        <label>
+          Vault URL
+
+          <input
+            id="newCreatorSlug"
+            type="text"
+            maxlength="40"
+            placeholder="underscorepower"
+            required
+          >
+        </label>
+
+
+        <small>
+          Your public page will use this name in its URL.
+          Use lowercase letters, numbers and hyphens.
+        </small>
+
+
+        <button type="submit">
+          Create My Vault
+        </button>
+
+      </form>
+
+    </div>
+
+
+    <div class="onboarding-or">
+      <span>OR</span>
+    </div>
+
+
+    <!-- CLAIM EXISTING VAULT -->
+
+    <div class="panel">
+
+      <p class="eyebrow">
+        EXISTING CREATOR
+      </p>
+
+      <h2>
+        Claim an existing Vault
+      </h2>
+
+      <p>
+        Have an invite code? Enter it below to connect
+        this account to your existing Snack Vault.
+      </p>
+
+
+      <form id="claimVaultForm">
+
+        <label>
+          Invite code
+
+          <input
+            id="inviteCode"
+            type="text"
+            placeholder="SV-XXXXXXXXXXXX"
+            autocomplete="off"
+            required
+          >
+        </label>
+
+
+        <button type="submit">
+          Claim My Vault
+        </button>
+
+      </form>
+
+    </div>
+
+
+    <small id="onboardingMsg"></small>
+
+
+    <button
+      id="onboardingLogout"
+      type="button"
+      class="ghost"
+    >
+      Sign out
+    </button>
+
+  </div>
+
+</div>
+
+
+
+<!-- ======================================================
+     CREATOR DASHBOARD
+====================================================== -->
+
+<div id="app" class="dashboard hidden">
+
+
+  <!-- SIDEBAR -->
+
+  <aside>
+
+    <div class="sidebrand">
+
+      <i id="creatorBadge">
+        SV
+      </i>
+
+      <b>
+        SNACK<br>
+        VAULT
+      </b>
+
+    </div>
+
+
+    <nav>
+
+      <a href="#overview">
+        Overview
+      </a>
+
+      <a href="#manage">
+        Snacks
+      </a>
+
+      <a href="#history">
+        Pull History
+      </a>
+
+      <a href="#bot">
+        Bot Setup
+      </a>
+
+      <a href="#settings">
+        Settings
+      </a>
+
+    </nav>
+
+
+    <button
+      id="logout"
+      class="ghost"
+    >
+      Sign out
+    </button>
+
+  </aside>
+
+
+
+  <!-- MAIN DASHBOARD -->
+
+  <main>
+
+
+    <header class="dashhead">
+
+      <div>
+
+        <p class="eyebrow">
+          CREATOR CONTROL
+        </p>
+
+        <h1 id="creatorName">
+          Snack Vault
+        </h1>
+
+      </div>
+
+
+      <span id="saveMsg"></span>
+
+    </header>
+
+
+
+    <!-- OVERVIEW -->
+
+    <section id="overview">
+
+      <div class="dashstats">
+
+
+        <article>
+
+          <small>
+            ACTIVE SNACKS
+          </small>
+
+          <strong id="snackCount">
+            0
+          </strong>
+
+        </article>
+
+
+        <article>
+
+          <small>
+            VIEWERS
+          </small>
+
+          <strong id="viewerCount">
+            0
+          </strong>
+
+        </article>
+
+
+        <article>
+
+          <small>
+            PULLS
+          </small>
+
+          <strong id="pullCount">
+            0
+          </strong>
+
+        </article>
+
+
+        <article>
+
+          <small>
+            TOP UNIQUE
+          </small>
+
+          <strong id="leaderCount">
+            0
+          </strong>
+
+        </article>
+
+
+      </div>
+
+    </section>
+
+
+
+    <!-- SNACK MANAGEMENT -->
+
+    <section id="manage">
+
+      <div class="sectitle">
+
+        <div>
+
+          <p class="eyebrow">
+            MANAGE COLLECTION
+          </p>
+
+          <h2>
+            Snacks
+          </h2>
+
+        </div>
+
+
+        <div class="actions" style="flex-wrap:wrap">
+          <button type="button" id="enableAllSnacks" class="ghost" disabled>Enable All</button>
+          <button type="button" id="archiveAllSnacks" class="danger" disabled>Archive All</button>
+          <button type="button" id="addSnack">+ Add Snack</button>
+        </div>
+
+      </div>
+
+      <p class="muted">Enable All restores archived snacks and enables them for pulls.</p>
+      <p id="bulkSnackStatus" role="status" aria-live="polite"></p>
+
+      <div class="table">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Snack</th>
+              <th>Rarity</th>
+              <th>Weight</th>
+              <th>Chance</th>
+              <th>Status</th>
+              <th></th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody id="snackRows"></tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- PULL HISTORY -->
+
+    <section id="history">
+
+      <div class="sectitle">
+
+        <div>
+
+          <p class="eyebrow">
+            ACTIVITY
+          </p>
+
+          <h2>
+            Recent Pulls
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="table">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Viewer</th>
+              <th>Snack</th>
+              <th>Time</th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody id="pullRows"></tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- BOT SETUP -->
+
+    <section id="bot">
+
+      <div class="sectitle">
+
+        <div>
+
+          <p class="eyebrow">
+            INTEGRATION
+          </p>
+
+          <h2>
+            Bot Setup
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="panel">
+
+        <p class="eyebrow">AFTERHOURSAI</p>
+        <h3>Your cloud bot</h3>
+        <p id="cloudBotStatus" role="status">Loading connection…</p>
+        <div class="cloud-actions">
+          <button type="button" id="connectTwitch">Connect Twitch</button>
+          <button type="button" id="toggleBot" disabled>Enable Bot</button>
+          <button type="button" id="testBot" disabled>Send Test Message</button>
+          <button type="button" id="refreshBot">Refresh</button>
+        </div>
+        <p id="cloudBotMessage" role="status" aria-live="polite"></p>
+        <p id="cloudBotTotals"></p>
+        <p class="muted">Connect your streaming channel. AfterHoursAI remains the shared bot. Disabling stops new pulls and chat here; pause the reward in Twitch too so viewers cannot spend points while it is off.</p>
+        <h3>Channel Point snack bags</h3>
+        <p id="rewardStatus">Connect Twitch to configure a reward. Enabling the bot checks the Twitch chat and redemption subscriptions.</p>
+        <div class="cloud-actions">
+          <button type="button" id="loadRewards">Load my rewards</button>
+          <select id="rewardSelect" aria-label="Existing Twitch reward"><option value="">Choose a reward</option></select>
+          <button type="button" id="selectReward">Use selected reward</button>
+        </div>
+        <div class="cloud-actions">
+          <label>New reward name <input id="rewardTitle" maxlength="45" value="Open a Snack Bag"></label>
+          <label>Point cost <input id="rewardCost" type="number" min="1" step="1" value="100"></label>
+          <button type="button" id="createReward">Create and connect reward</button>
+          <button type="button" id="retrySubscription">Repair Twitch subscriptions</button>
+        </div>
+        <div class="cloud-actions">
+          <label>Per-viewer redemption cooldown (seconds) <input id="redemptionCooldown" type="number" min="1" max="3600" step="1" value="1"></label>
+          <button type="button" id="saveRedemptionCooldown">Save cooldown</button>
+        </div>
+        <p>Snack Vault checks this cooldown separately for each viewer. At 1 second, the same viewer can pull again after one second. App-managed rewards have Twitch's global cooldown turned off; rewards from other apps may still have their own Twitch cooldown. Too-soon attempts make no pull; app-managed rewards are canceled/refunded automatically, while other rewards need manual handling.</p>
+        <p>Rewards created here can be fulfilled or refunded automatically. Rewards made elsewhere require manual fulfillment/refunds in Twitch. Turn off any old bot action for the selected reward to avoid two pulls per redemption.</p>
+        <div id="deliveryHistory"></div>
+        <hr>
+        <h3>Custom chat commands</h3>
+        <p>Create a chat reply or make a command open a snack bag. Replies support <code>{user}</code>, <code>%user%</code>, <code>$(user)</code>, and matching channel/command forms. The default <code>!snack</code> command opens a bag.</p>
+        <form id="commandForm" class="cloud-actions">
+          <input type="hidden" id="commandId">
+          <label>Command name <input id="commandName" maxlength="24" placeholder="lurk" required></label>
+          <label>Action <select id="commandType"><option value="response">Send chat reply</option><option value="pull">Open snack bag</option></select></label>
+          <label>Chat response <input id="commandResponse" maxlength="450" placeholder="{user} is lurking. See you soon!" required></label>
+          <label>Cooldown (seconds) <input id="commandCooldown" type="number" min="1" max="3600" value="5" required></label>
+          <button type="submit" id="saveCommand">Add command</button>
+          <button type="button" id="cancelCommand" hidden>Cancel edit</button>
+        </form>
+        <p id="commandMessage" role="status"></p>
+        <div id="commandList"></div>
+        <hr>
+        <h3>OBS overlay URLs</h3>
+        <p>Copy a URL into an OBS Browser Source. Suggested canvas: 1920 × 1080. The collection overlay shows the latest puller's collection.</p>
+        <div id="overlayLinks"></div>
+        <hr>
+        <details><summary><strong>Existing external-bot integration</strong></summary>
+
+        <p class="eyebrow">YOUR CONNECTION</p>
+        <h3>Snack Vault API</h3>
+
+        <p>Connect your Twitch bot to Snack Vault. Your API key belongs only to this Vault.</p>
+
+        <label>Pull endpoint</label>
+        <div class="copy">
+          <input id="endpoint" readonly>
+          <button type="button" data-copy="endpoint">Copy</button>
+        </div>
+
+        <label>Bot API key</label>
+        <div class="copy">
+          <input id="apiKey" value="No plaintext key stored" readonly>
+          <button id="generateKey" type="button">Generate / Regenerate</button>
+        </div>
+
+        <p id="keyWarning" class="warning hidden">
+          Copy this key now. It is shown only once. Keep it private and never put it in your website files.
+        </p>
+
+        <hr>
+
+        <p class="eyebrow">CHOOSE YOUR BOT</p>
+        <h3>Setup Instructions</h3>
+
+        <details open>
+          <summary><strong>Mix It Up</strong></summary>
+          <div style="padding:16px 0;">
+            <p>Add a Web Request action to your Channel Point reward.</p>
+            <p><strong>Method</strong></p><pre>POST</pre>
+            <p><strong>URL</strong></p><pre>Use the Pull Endpoint shown above.</pre>
+            <p><strong>Headers</strong></p>
+            <pre>Content-Type: application/json
+x-snack-api-key: YOUR_KEY
+x-response-format: text</pre>
+            <p><strong>Body</strong></p>
+            <pre>{
+  "username": "$username",
+  "display_name": "$username"
+}</pre>
+            <p><strong>Response Processing Type</strong></p><pre>Plain Text</pre>
+            <p>Then add a Chat Message action containing:</p><pre>$webrequestresult</pre>
+          </div>
+        </details>
+
+        <details>
+          <summary><strong>Streamer.bot</strong></summary>
+          <div style="padding:16px 0;">
+            <p>Create an action and add <strong>Execute C# Code</strong>. Paste the code below and replace <code>YOUR_SNACK_VAULT_API_KEY</code> with the Bot API key shown above.</p>
+            <pre>using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+
+public class CPHInline
+{
+    public bool Execute()
+    {
+        return ExecuteAsync().GetAwaiter().GetResult();
+    }
+
+    private async Task&lt;bool&gt; ExecuteAsync()
+    {
+        if (!CPH.TryGetArg("userName", out string username) ||
+            string.IsNullOrWhiteSpace(username))
+        {
+            CPH.LogError("Snack Vault: Could not find userName.");
+            return false;
+        }
+
+        string url = "https://inftkwxwqkyhzrqxmiey.supabase.co/functions/v1/pull";
+        string apiKey = "YOUR_SNACK_VAULT_API_KEY";
+
+        string safeUsername = username
+            .Replace("\\", "\\\\")
+            .Replace("\"", "\\\"");
+
+        string json =
+            "{\"username\":\"" + safeUsername +
+            "\",\"display_name\":\"" + safeUsername + "\"}";
+
+        try
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Add("x-snack-api-key", apiKey);
+                client.DefaultRequestHeaders.Add("x-response-format", "text");
+
+                using (StringContent content = new StringContent(
+                    json, Encoding.UTF8, "application/json"))
+                {
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        CPH.LogError("Snack Vault API Error (" +
+                            (int)response.StatusCode + "): " + result);
+                        return false;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(result))
+                    {
+                        CPH.LogError("Snack Vault returned an empty response.");
+                        return false;
+                    }
+
+                    CPH.SendMessage(result);
+                    return true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            CPH.LogError("Snack Vault Exception: " + ex.Message);
+            return false;
+        }
+    }
+}</pre>
+            <p>Attach this action to the Twitch Channel Point reward. Snack Vault sends the pull result directly to Twitch chat.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary><strong>Firebot</strong></summary>
+          <div style="padding:16px 0;">
+            <p>Add an <strong>HTTP Request</strong> effect to your reward.</p>
+            <p><strong>Method</strong></p><pre>POST</pre>
+            <p><strong>URL</strong></p><pre>Use the Pull Endpoint shown above.</pre>
+            <p><strong>Headers</strong></p>
+            <pre>Content-Type: application/json
+x-snack-api-key: YOUR_KEY
+x-response-format: text</pre>
+            <p><strong>Body</strong></p>
+            <pre>{
+  "username": "$username",
+  "display_name": "$username"
+}</pre>
+            <p>After the HTTP Request, add a <strong>Chat</strong> effect.</p>
+            <p><strong>Message To Send</strong></p><pre>$effectOutput[httpResponse]</pre>
+            <p>Keep the effects in this order:</p><pre>1. HTTP Request
+2. Chat</pre>
+            <p>Run Mode should be <strong>Sequential (All)</strong>.</p>
+          </div>
+        </details>
+
+        <hr>
+        <p>🔒 External bot pulls use your private per-vault API key. Cloud redemptions are verified on the server.</p>
+        </details>
+
+      </div>
+
+    </section>
+
+
+
+<!-- ======================================================
+     SETTINGS / COMMUNITY BRANDING
+====================================================== -->
+
+<section id="settings">
+
+  <div class="sectitle">
+
+    <div>
+
+      <p class="eyebrow">
+        COMMUNITY BRANDING
+      </p>
+
+      <h2>
+        Settings
+      </h2>
+
+    </div>
+
+  </div>
+
+
+  <div class="panel settings">
+
+
+    <!-- CREATOR NAME -->
+
+    <label>
+
+      Creator name
+
+      <input
+        id="setName"
+        type="text"
+        maxlength="50"
+      >
+
+    </label>
+
+
+
+    <!-- COMMUNITY LOGO -->
+
+    <div class="branding-field">
+
+      <label>
+        Community logo
+      </label>
+
+
+      <div
+        style="
+          display:flex;
+          align-items:center;
+          gap:24px;
+          flex-wrap:wrap;
+          margin-top:12px;
+          margin-bottom:24px;
+        "
+      >
+
+
+        <!-- LOGO PREVIEW -->
+
+        <div
+          style="
+            width:120px;
+            height:120px;
+            flex-shrink:0;
+            border:1px solid rgba(255,255,255,.12);
+            border-radius:20px;
+            background:rgba(255,255,255,.03);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+          "
+        >
+
+          <img
+            id="creatorLogoPreview"
+            alt="Community logo preview"
+            hidden
+            style="
+              width:100%;
+              height:100%;
+              object-fit:contain;
+              padding:10px;
+            "
+          >
+
+
+          <span
+            id="creatorLogoPlaceholder"
+            style="
+              font-size:38px;
+              font-weight:700;
+              opacity:.3;
+            "
+          >
+            +
+          </span>
+
+        </div>
+
+
+
+        <!-- UPLOAD CONTROLS -->
+
+        <div>
+
+          <input
+            id="creatorLogoFile"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+          >
+
+
+          <p
+            style="
+              margin:10px 0 0;
+              font-size:12px;
+              opacity:.6;
+            "
+          >
+            Upload a PNG, JPG or WEBP.
+            Maximum size: 5 MB.
+          </p>
+
+
+          <button
+            id="removeLogo"
+            type="button"
+            class="ghost hidden"
+            style="
+              margin-top:12px;
+            "
+          >
+            Remove logo
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- ACCENT COLOR -->
+
+    <label>
+
+      Accent color
+
+      <input
+        id="setColor"
+        type="color"
+      >
+
+    </label>
+
+
+
+    <!-- PUBLIC URL -->
+
+    <label>
+
+      Public Vault URL
+
+      <input
+        id="setSlug"
+        type="text"
+        readonly
+      >
+
+    </label>
+
+
+
+    <!-- SAVE BUTTON -->
+
+    <button
+      id="saveSettings"
+      type="button"
+    >
+      Save branding
+    </button>
+
+
+    <small
+      id="brandingStatus"
+      style="
+        display:block;
+        margin-top:12px;
+        opacity:.7;
+      "
+    ></small>
+
+
+  </div>
+
+</section>
+
+
+  </main>
+
+</div>
+
+
+
+<!-- ======================================================
+     SNACK EDITOR MODAL
+====================================================== -->
+
+<div
+  id="modal"
+  class="modal hidden"
+>
+
+
+  <div class="modalbox">
+
+
+    <button
+      id="closeModal"
+      class="x"
+      type="button"
+    >
+      ×
+    </button>
+
+
+    <p class="eyebrow">
+      SNACK
+    </p>
+
+
+    <h2 id="modalTitle">
+      Add Snack
+    </h2>
+
+
+
+    <form id="snackForm">
+
+
+      <input
+        id="snackId"
+        type="hidden"
+      >
+
+
+      <label>
+
+        Name
+
+        <input
+          id="sName"
+          required
+        >
+
+      </label>
+
+
+      <label>
+
+        Description
+
+        <textarea
+          id="sDesc"
+        ></textarea>
+
+      </label>
+
+
+      <label>
+
+        Image
+
+        <input
+          id="sImage"
+          type="file"
+          accept="image/*"
+        >
+
+      </label>
+
+
+      <label>
+
+        Rarity
+
+        <select id="sRarity">
+
+          <option>
+            Common
+          </option>
+
+          <option>Uncommon</option>
+          <option>
+            Rare
+          </option>
+
+          <option>
+            Epic
+          </option>
+
+          <option>
+            Legendary
+          </option>
+          <option>Mythic</option>
+
+        </select>
+
+      </label>
+
+
+      <label>
+
+        Category
+
+        <input
+          id="sCategory"
+          value="Snack"
+        >
+
+      </label>
+
+
+      <label>
+
+        Weight
+
+        <input
+          id="sWeight"
+          type="number"
+          min="0"
+          value="50"
+        >
+
+      </label>
+
+
+      <label class="check">
+
+        <input
+          id="sEnabled"
+          type="checkbox"
+          checked
+        >
+
+        Enabled in pulls
+
+      </label>
+
+
+
+      <div class="actions">
+
+
+        <button
+          type="button"
+          id="archiveSnack"
+          class="danger hidden"
+        >
+          Archive
+        </button>
+
+        <button type="button" id="deleteSnack" class="danger hidden">Delete Snack</button>
+
+
+        <button
+          type="button"
+          id="cancelSnack"
+          class="ghost"
+        >
+          Cancel
+        </button>
+
+
+        <button type="submit">
+          Save snack
+        </button>
+
+
+      </div>
+
+
+    </form>
+
+
+  </div>
+
+</div>
+
+
+
+<script src="../js/config.js"></script>
+<script
+  type="module"
+  src="../js/admin.js?v=multicreator-v4"
+></script>
+
+</body>
+</html>
