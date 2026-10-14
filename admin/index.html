@@ -397,11 +397,16 @@
         </div>
 
 
-        <button id="addSnack">
-          + Add Snack
-        </button>
+        <div class="actions" style="flex-wrap:wrap">
+          <button type="button" id="enableAllSnacks" class="ghost" disabled>Enable All</button>
+          <button type="button" id="archiveAllSnacks" class="danger" disabled>Archive All</button>
+          <button type="button" id="addSnack">+ Add Snack</button>
+        </div>
 
       </div>
+
+      <p class="muted">Enable All restores archived snacks and enables them for pulls.</p>
+      <p id="bulkSnackStatus" role="status" aria-live="polite"></p>
 
       <div class="table">
 

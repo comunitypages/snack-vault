@@ -11,6 +11,7 @@ const $ = id => document.getElementById(id);
 
 let creator = null;
 let snacks = [];
+let bulkSnacksBusy = false;
 let pendingLogoFile = null;
 let removeCurrentLogo = false;
 
@@ -421,7 +422,57 @@ async function loadSnacks() {
     ).length;
 
   renderSnacks();
+  updateBulkSnackButtons();
 }
+
+function updateBulkSnackButtons() {
+  $("archiveAllSnacks").disabled = bulkSnacksBusy || !creator ||
+    !snacks.some(snack => !snack.archived);
+  $("enableAllSnacks").disabled = bulkSnacksBusy || !creator ||
+    !snacks.some(snack => snack.archived || !snack.enabled);
+}
+
+async function updateAllSnacks(action) {
+  if (!creator || bulkSnacksBusy) return;
+  const archiving = action === "archive";
+  const affected = snacks.filter(snack => archiving
+    ? !snack.archived
+    : snack.archived || !snack.enabled);
+  if (!affected.length) return;
+  const question = archiving
+    ? `Archive all ${affected.length} available snacks? This pauses snack pulls. Viewer collections and pull history stay intact.`
+    : `Enable all snacks, including ${affected.length} disabled or archived snacks? Archived snacks will be restored to your pull pool.`;
+  if (!confirm(question)) return;
+
+  bulkSnacksBusy = true;
+  updateBulkSnackButtons();
+  $("bulkSnackStatus").textContent = archiving ? "Archiving snacks…" : "Enabling snacks…";
+  let saved = false;
+  try {
+    const { data, error } = await supabase
+      .from("snacks")
+      .update({ archived: archiving, enabled: !archiving })
+      .eq("creator_id", creator.id)
+      .select("id");
+    if (error) throw error;
+    if (!data?.length) throw new Error("No snacks were updated. Refresh the dashboard and try again.");
+    saved = true;
+    await loadSnacks();
+    $("bulkSnackStatus").textContent = archiving
+      ? "All snacks archived. Viewer collections and pull history are preserved."
+      : "All snacks enabled, including previously archived snacks.";
+  } catch (error) {
+    $("bulkSnackStatus").textContent = saved
+      ? "Snacks saved, but the list could not refresh. Refresh this page to see the changes."
+      : `Could not ${archiving ? "archive" : "enable"} snacks: ${error.message || "Please try again."}`;
+  } finally {
+    bulkSnacksBusy = false;
+    updateBulkSnackButtons();
+  }
+}
+
+$("archiveAllSnacks").addEventListener("click", () => updateAllSnacks("archive"));
+$("enableAllSnacks").addEventListener("click", () => updateAllSnacks("enable"));
 
 function renderSnacks() {
   const active = snacks.filter(
