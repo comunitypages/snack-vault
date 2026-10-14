@@ -719,6 +719,7 @@ function openSnackModal(snack = null) {
     "hidden",
     !snack
   );
+  $("deleteSnack").classList.toggle("hidden", !snack);
 }
 
 function closeSnackModal() {
@@ -839,6 +840,30 @@ $("snackForm").addEventListener("submit", async event => {
 // ======================================================
 // ARCHIVE
 // ======================================================
+
+$("deleteSnack").addEventListener("click", async () => {
+  const snackId = $("snackId").value;
+  if (!creator || !snackId) return;
+  if (!confirm(`Permanently delete "${$("sName").value}"? This cannot be undone. Snacks already collected must be archived to preserve viewer collections and pull history.`)) return;
+  const button = $("deleteSnack");
+  button.disabled = true;
+  try {
+    const { data, error } = await supabase.from("snacks").delete()
+      .eq("id", snackId).eq("creator_id", creator.id).select("id");
+    if (error?.code === "23503") {
+      alert("This snack is in a viewer collection or pull history. Use Archive to remove it from future pulls while preserving those records.");
+      return;
+    }
+    if (error) throw error;
+    if (!data?.length) throw new Error("No snack was deleted. Refresh the dashboard and try again.");
+    closeSnackModal();
+    await loadSnacks();
+  } catch (error) {
+    alert(error.message || "Could not delete the snack.");
+  } finally {
+    button.disabled = false;
+  }
+});
 
 $("archiveSnack").addEventListener("click", async () => {
   const snackId = $("snackId").value;

@@ -24,6 +24,8 @@
 
   <style>
 
+    [data-creator-logo][hidden] { display: none !important; }
+
     :root {
       --pretty-pink: #ff176d;
       --pretty-hot: #ff2d95;
@@ -166,7 +168,7 @@
 
       <img
         class="pretty-logo"
-        src="/images/pretty/logo.png"
+        data-creator-logo hidden
         alt="Creator logo" id="creatorLogo"
       >
 
@@ -213,8 +215,8 @@
 
       <div>
 
-        <p class="eyebrow">
-          PRETTY MASSACURE · SNACK VAULT
+        <p class="eyebrow" id="creatorEyebrow">
+          SNACK VAULT · COMMUNITY COLLECTION
         </p>
 
 
@@ -249,7 +251,7 @@
 
           <input
             id="username"
-            name="pretty_snack_vault_twitch_handle"
+            name="snack_vault_twitch_handle"
             type="text"
             maxlength="25"
             placeholder="Enter your Twitch username"
@@ -295,7 +297,7 @@
 
           <img
             class="pass-logo"
-            src="/images/pretty/logo.png"
+            data-creator-logo hidden
             alt=""
           >
 
@@ -307,8 +309,8 @@
           </strong>
 
 
-          <small>
-            PRETTY MASSACURE
+          <small id="passCreatorName">
+            YOUR COMMUNITY
           </small>
 
         </div>
@@ -577,7 +579,7 @@
     >
 
       <img
-        src="/images/pretty/logo.png"
+        data-creator-logo hidden
         alt=""
         style="
           width:34px;
@@ -649,7 +651,7 @@
     */
     const routeParams = new URLSearchParams(window.location.search);
     const pathSlug = window.location.pathname.split("/").filter(Boolean)[0] || "";
-    const slug = (routeParams.get("slug") || pathSlug || window.SNACK_VAULT_CONFIG.DEFAULT_CREATOR_SLUG)
+    const slug = (routeParams.get("slug") || (pathSlug !== "creator" ? pathSlug : ""))
       .trim().toLowerCase();
 
 
@@ -1017,7 +1019,7 @@
 
         /*
           Give viewers a shareable collection URL:
-          /pretty-massacure/?user=username
+          /creator-slug?user=username
         */
 
         const url =
@@ -1077,6 +1079,7 @@
     async function init() {
 
       try {
+        if (!slug) throw new Error("Open a creator vault using its community link.");
 
         creatorData =
           await getCreator(slug);
@@ -1097,7 +1100,25 @@
         const logo = document.getElementById("creatorLogo");
         if (brandName) brandName.textContent = creatorData.name.toUpperCase();
         if (footerName) footerName.textContent = creatorData.name;
-        if (logo && creatorData.logo_url) logo.src = creatorData.logo_url;
+        document.getElementById("creatorEyebrow").textContent = `${creatorData.name.toUpperCase()} · SNACK VAULT`;
+        document.getElementById("passCreatorName").textContent = creatorData.name.toUpperCase();
+        document.querySelector('meta[name="description"]').content = `${creatorData.name}'s Snack Vault. Collect snacks and climb the leaderboard.`;
+        document.querySelector("header .brand").href = `/${encodeURIComponent(creatorData.slug)}`;
+        let creatorLogoUrl = null;
+        try {
+          const url = new URL(creatorData.logo_url);
+          if (["https:", "http:"].includes(url.protocol)) creatorLogoUrl = url.href;
+        } catch {}
+        document.querySelectorAll("[data-creator-logo]").forEach(image => {
+          if (creatorLogoUrl) {
+            image.src = creatorLogoUrl;
+            image.hidden = false;
+            image.onerror = () => { image.hidden = true; };
+          } else {
+            image.removeAttribute("src");
+            image.hidden = true;
+          }
+        });
 
 
 
